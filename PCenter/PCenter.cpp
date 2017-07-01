@@ -16,7 +16,7 @@ int main () {
         
         int number = 0;
         int p;
-        ifstream in("pmed1.txt");
+        ifstream in("pmed40.txt");
         
         int in1, in2, in3;
         in >> in1 >> in2 >> in3;
