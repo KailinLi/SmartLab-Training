@@ -17,7 +17,7 @@
 using namespace std;
 
 //#define count 4
-#define key 29
+#define key 15
 
 void addNew (map<int, vector<int>> *E, int v1, int v2);
 bool check (vector<int> *V, map<int, vector<int>> *E);
