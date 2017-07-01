@@ -1,0 +1,10 @@
+*.DS_Store
+
+/GraphColoring/GraphColoring.dSYM
+/GraphColoring/GraphColoring
+/GraphColoring/Makefile
+/GraphColoring/run
+
+/PCenter/Makefile
+/PCenter/PCenter
+/PCenter/PCenter.dSYM
