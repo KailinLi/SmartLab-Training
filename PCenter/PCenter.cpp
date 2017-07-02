@@ -16,7 +16,7 @@ int main () {
         
         int number = 0;
         int p;
-        ifstream in("pmed40.txt");
+        ifstream in("pmed1.txt");
         
         int in1, in2, in3;
         in >> in1 >> in2 >> in3;
@@ -86,8 +86,8 @@ int main () {
                 model.addConstr(max - distance[i][j]*y[i][j] >= 0);
                 model.addConstr(x[i] - y[i][j] >= 0);
                 c2 += y[j][i];
-                model.addConstr(c2 == 1);
             }
+            model.addConstr(c2 == 1);
         }
         model.addConstr(c0 == p);
 
