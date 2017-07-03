@@ -14,18 +14,20 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <list>
 #include <queue>
+#include <ctime>
 using namespace std;
 
 #define number 5
 #define p 3
 
-struct ShortD {
+struct SortD {
     int index;
     int distance;
-    ShortD(int i, int d) : index(i), distance(d) {}
+    SortD(int i, int d) : index(i), distance(d) {}
 };
-
+inline int findMinSet (vector<SortD>&, int );
 int main () {
     int distance[number][number] = {
         {0,1,3,2,2},
@@ -34,15 +36,48 @@ int main () {
         {2,3,2,0,1},
         {2,4,1,1,0}
     };
-    auto cmp = [] (ShortD x, ShortD y) {return x.distance < y.distance;};
-    vector<multiset<ShortD, decltype(cmp)>>SortDistance;
+    
+    /*
+     *sort the distance
+     */
+    vector<vector<SortD>>SortDistance;
     for (int i = 0; i < number; ++i) {
-        multiset<ShortD, decltype(cmp)>sort(cmp);
+        vector<SortD> sortSet;
         for (int j = 0; j < number; ++j) {
-            sort.insert(ShortD(j, distance[i][j]));
+            sortSet.push_back(SortD(j, distance[i][j]));
         }
-        SortDistance.push_back(sort);
+        sort(sortSet.begin(), sortSet.end(), [](SortD x, SortD y) {return x.distance < y.distance;});
+        SortDistance.push_back(sortSet);
     }
     
-    for_each(SortDistance[2].begin(), SortDistance[2].end(), [](ShortD i) {cout << i.index << endl;});
+    /*
+     *initial
+     */
+    list<int>pCenter;
+    srand(static_cast<unsigned int>(time(NULL)));
+    int current = rand() % number;
+    pCenter.insert(pCenter.begin(), current);
+    while (pCenter.size() < p) {
+        auto center = *SortDistance[current].rbegin();
+        int size = findMinSet(SortDistance[center.index], center.distance);
+        do {
+            current = SortDistance[center.index][rand() % size].index;
+        } while (find(pCenter.begin(), pCenter.end(), current) != pCenter.end());
+        pCenter.insert(pCenter.begin(), current);
+    }
+    for_each(pCenter.begin(), pCenter.end(), [](int i) {cout << i << endl;});
+}
+inline int findMinSet (vector<SortD>& sort, int current) {
+    int begin = 0;
+    int end = static_cast<int>(sort.size());
+    int middle = (begin + end) / 2;
+    for (; middle != begin && middle != end; middle = (begin + end) / 2) {
+        if (sort[middle].distance <= current) {
+            begin = middle;
+        }
+        else {
+            end = middle;
+        }
+    }
+    return (sort[middle].distance == current) ? middle + 1 : middle;
 }
