@@ -25,9 +25,11 @@ using namespace std;
 struct SortD {
     int index;
     int distance;
+    SortD() : index(0), distance(0) {}
     SortD(int i, int d) : index(i), distance(d) {}
 };
 inline int findMinSet (vector<SortD>&, int );
+inline void makeTable (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&);
 int main () {
     int distance[number][number] = {
         {0,1,3,2,2},
@@ -65,7 +67,17 @@ int main () {
         } while (find(pCenter.begin(), pCenter.end(), current) != pCenter.end());
         pCenter.insert(pCenter.begin(), current);
     }
-    for_each(pCenter.begin(), pCenter.end(), [](int i) {cout << i << endl;});
+    
+    /*
+     *make d table and f table
+     */
+    vector<pair<SortD, SortD>>table;
+    makeTable(table, pCenter, SortDistance);
+    
+    for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
+    
+    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
+    
 }
 inline int findMinSet (vector<SortD>& sort, int current) {
     int begin = 0;
@@ -80,4 +92,27 @@ inline int findMinSet (vector<SortD>& sort, int current) {
         }
     }
     return (sort[middle].distance == current) ? middle + 1 : middle;
+}
+inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, vector<vector<SortD>>& SortDistance) {
+    for (int index = 0; index < SortDistance.size(); ++index) {
+        SortD best;
+        SortD second;
+        int i = 0;
+        auto item = SortDistance[index];
+        while (i < item.size()) {
+            if (find(pCenter.begin(), pCenter.end(), item[i].index) != pCenter.end()) {
+                best = item[i++];
+                break;
+            }
+            ++i;
+        }
+        while (i < item.size()) {
+            if (find(pCenter.begin(), pCenter.end(), item[i].index) != pCenter.end()) {
+                second = item[i];
+                break;
+            }
+            ++i;
+        }
+        table.push_back(make_pair(best, second));
+    }
 }
