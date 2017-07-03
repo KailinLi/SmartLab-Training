@@ -89,6 +89,8 @@ int main () {
     vector<pair<SortD, SortD>>table;
     makeTable(table, pCenter, SortDistance);
     
+    int tabuAdd[number] = {0};
+    int tabuDelete[number] = {0};
     
 #pragma mark iterator
     int step = 0;
@@ -107,13 +109,14 @@ int main () {
         priority_queue<Pair> best;
         
         for (int addV = 0; addV < lessCount; ++addV) {
-            if (SortDistance[current][addV].index == table[current].first.index) continue;
+            if ((SortDistance[current][addV].index == table[current].first.index) || tabuDelete[SortDistance[current][addV].index] > step) continue;
             vector<pair<SortD, SortD>>saveTable = table;
             addCenter(saveTable, distance, SortDistance[current][addV].index);
             int minLongest = INT32_MAX;
             int deleteV = 0;
             vector<int> bestlist;
             for (auto center : pCenter) {
+                if (tabuAdd[center] > step) continue;
                 int value = simulateDelete(saveTable, center);
                 if (minLongest > value) {
                     minLongest = value;
@@ -127,16 +130,29 @@ int main () {
             deleteV = bestlist[rand() % bestlist.size()];
             best.push(Pair(SortDistance[current][addV].index, deleteV, minLongest));
         }
-        
+        if (best.empty()) {
+            break;
+        }
         auto bestPair = best.top();
         if (bestPair.distance >= longest) {
-            break;
+            int randNum = rand() % pCenter.size();
+            auto dV = pCenter.begin();
+            while (randNum > 0) {
+                ++dV;
+                --randNum;
+            }
+            int aV = rand() % number;
+            while (find(pCenter.begin(), pCenter.end(), aV) != pCenter.end()) {
+                aV = rand() % number;
+            }
+            bestPair = Pair(aV, *dV, distance[aV][*dV]);
         }
         pCenter.erase(find(pCenter.begin(), pCenter.end(), bestPair.deleteV));
         pCenter.insert(pCenter.begin(), bestPair.addV);
         addCenter(table, distance, bestPair.addV);
         deleteCenter(table, pCenter, SortDistance, bestPair.deleteV);
-        
+        tabuAdd[bestPair.addV] = step + rand() % 5 + bestPair.distance;
+        tabuDelete[bestPair.deleteV] = step + rand() % 5 + bestPair.distance;
         ++step;
     }
     vector<int>tmp;
