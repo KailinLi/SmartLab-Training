@@ -20,7 +20,7 @@
 using namespace std;
 
 #define number 5
-#define p 3
+#define p 2
 
 struct SortD {
     int index;
@@ -28,18 +28,31 @@ struct SortD {
     SortD() : index(0), distance(0) {}
     SortD(int i, int d) : index(i), distance(d) {}
 };
+struct Pair {
+    int addV;
+    int deleteV;
+    int distance;
+    bool operator < (const Pair &x) const {
+        return distance > x.distance;
+    }
+    Pair() : addV(0), deleteV(0), distance(0) {}
+    Pair(int aV, int dV, int d) : addV(aV), deleteV(dV), distance(d) {}
+};
 inline int findMinSet (vector<SortD>&, int );
 inline void makeTable (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&);
-inline void findMax (vector<pair<SortD, SortD>>&, vector<int>&);
-inline void addCenter (vector<pair<SortD, SortD>>&, int**, int);
+inline int findMax (vector<pair<SortD, SortD>>&, vector<int>&);
+inline int addCenter (vector<pair<SortD, SortD>>&, int**, int);
+inline int simulateDelete(vector<pair<SortD, SortD>>&, int);
+inline void deleteCenter (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&, int);
+inline SortD findSecond (list<int>&, vector<vector<SortD>>&, int);
 int main () {
     
     int** distance = new int*[number];
     distance[0] = new int[number]{0,1,3,2,2};
     distance[1] = new int[number]{1,0,3,3,4};
-    distance[2] = new int[number]{3,3,0,2,1};
-    distance[3] = new int[number]{2,3,2,0,1};
-    distance[4] = new int[number]{2,4,1,1,0};
+    distance[2] = new int[number]{3,3,0,2,5};
+    distance[3] = new int[number]{2,3,2,0,4};
+    distance[4] = new int[number]{2,4,5,4,0};
     
     /*
      *sort the distance
@@ -76,27 +89,60 @@ int main () {
     vector<pair<SortD, SortD>>table;
     makeTable(table, pCenter, SortDistance);
     
-//    for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
-//    
-//    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
     
+#pragma mark iterator
     int step = 0;
     while (step != 100) {
         vector<int> maxVar;
-        findMax(table, maxVar);
-        //for_each(maxVar.begin(), maxVar.end(), [](int i) {cout << i << endl;});
-        int current = rand() % maxVar.size();
+        int longest = findMax(table, maxVar);
+        for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
+        
+        for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
+        for_each(maxVar.begin(), maxVar.end(), [](int i) {cout << i << endl;});
+        
+        cout << "***" << endl;
+        int current = maxVar[rand() % maxVar.size()];
         int lessCount = findMinSet(SortDistance[current], table[current].first.distance);
-        for (int time = 0; time < lessCount; ++time) {
-            if (SortDistance[current][time].index == current) continue;
+        
+        priority_queue<Pair> best;
+        
+        for (int addV = 0; addV < lessCount; ++addV) {
+            if (SortDistance[current][addV].index == table[current].first.index) continue;
             vector<pair<SortD, SortD>>saveTable = table;
-            addCenter(saveTable, distance, SortDistance[current][time].index);
-//            for (auto center : pCenter) {
-//                shit
-//            }
+            addCenter(saveTable, distance, SortDistance[current][addV].index);
+            int minLongest = INT32_MAX;
+            int deleteV = 0;
+            vector<int> bestlist;
+            for (auto center : pCenter) {
+                int value = simulateDelete(saveTable, center);
+                if (minLongest > value) {
+                    minLongest = value;
+                    bestlist.clear();
+                    bestlist.push_back(center);
+                }
+                else if (minLongest == value) {
+                    bestlist.push_back(center);
+                }
+            }
+            deleteV = bestlist[rand() % bestlist.size()];
+            best.push(Pair(SortDistance[current][addV].index, deleteV, minLongest));
         }
+        
+        auto bestPair = best.top();
+        if (bestPair.distance >= longest) {
+            break;
+        }
+        pCenter.erase(find(pCenter.begin(), pCenter.end(), bestPair.deleteV));
+        pCenter.insert(pCenter.begin(), bestPair.addV);
+        addCenter(table, distance, bestPair.addV);
+        deleteCenter(table, pCenter, SortDistance, bestPair.deleteV);
+        
         ++step;
     }
+    vector<int>tmp;
+    cout << "Min: " << findMax(table, tmp) << endl;
+    for_each(pCenter.begin(), pCenter.end(), [](int i) {cout << i << endl;});
+    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
     
 }
 inline int findMinSet (vector<SortD>& sort, int current) {
@@ -136,7 +182,7 @@ inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, ve
         table.push_back(make_pair(best, second));
     }
 }
-inline void findMax (vector<pair<SortD, SortD>>& table, vector<int>& maxVar) {
+inline int findMax (vector<pair<SortD, SortD>>& table, vector<int>& maxVar) {
     int max = INT32_MIN;
     for (int index = 0; index < table.size(); ++index) {
         if (table[index].first.distance == max) {
@@ -148,15 +194,62 @@ inline void findMax (vector<pair<SortD, SortD>>& table, vector<int>& maxVar) {
             maxVar.push_back(index);
         }
     }
+    return max;
 }
-inline void addCenter (vector<pair<SortD, SortD>>& table, int** distance, int center) {
+inline int addCenter (vector<pair<SortD, SortD>>& table, int** distance, int addV) {
+    int longest = INT32_MIN;
     for (int index = 0; index < table.size(); ++index) {
-        if (distance[index][center] < table[index].first.distance) {
+        if (distance[index][addV] < table[index].first.distance) {
+            if (longest < distance[index][addV]) longest = distance[index][addV];
             table[index].second = table[index].first;
-            table[index].first = SortD(center, distance[index][center]);
+            table[index].first = SortD(addV, distance[index][addV]);
         }
-        else if (distance[index][center] < table[index].second.distance) {
-            table[index].second = SortD(center, distance[index][center]);
+        else if (distance[index][addV] < table[index].second.distance) {
+            table[index].second = SortD(addV, distance[index][addV]);
         }
     }
+    return longest;
+}
+inline int simulateDelete(vector<pair<SortD, SortD>>& table, int deleteV) {
+    int longest = INT32_MIN;
+    for (auto item : table) {
+        if (item.first.index == deleteV) {
+            longest = max(longest, item.second.distance);
+        }
+        else {
+            longest = max(longest, item.first.distance);
+        }
+    }
+    return longest;
+}
+inline void deleteCenter (vector<pair<SortD, SortD>>& table, list<int>& pCenter, vector<vector<SortD>>& SortDistance, int deleteV) {
+    for (int index = 0; index < table.size(); ++index) {
+        if (table[index].first.index == deleteV) {
+            table[index].first = table[index].second;
+            table[index].second = findSecond(pCenter, SortDistance, index);
+        }
+        else if (table[index].second.index == deleteV) {
+            table[index].second = findSecond(pCenter, SortDistance, index);
+        }
+    }
+}
+inline SortD findSecond (list<int>& pCenter, vector<vector<SortD>>& SortDistance, int index) {
+    SortD second;
+    int i = 0;
+    auto item = SortDistance[index];
+    while (i < item.size()) {
+        if (find(pCenter.begin(), pCenter.end(), item[i].index) != pCenter.end()) {
+            ++i;
+            break;
+        }
+        ++i;
+    }
+    while (i < item.size()) {
+        if (find(pCenter.begin(), pCenter.end(), item[i].index) != pCenter.end()) {
+            second = item[i];
+            break;
+        }
+        ++i;
+    }
+    return second;
 }
