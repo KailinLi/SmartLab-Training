@@ -16,7 +16,7 @@ int main () {
         
         int number = 0;
         int p;
-        ifstream in("pmed1.txt");
+        ifstream in("pmed40.txt");
         
         int in1, in2, in3;
         in >> in1 >> in2 >> in3;
@@ -37,6 +37,7 @@ int main () {
          *Dijkstra
          */
         for (int current = 0; current < number; ++current) {
+            cout << current << endl;
             vector<int>way(number, INT32_MAX);
             vector<bool>inPath(number, false);
             way[current] = 0;
