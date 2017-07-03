@@ -34,8 +34,15 @@ int main () {
         {2,3,2,0,1},
         {2,4,1,1,0}
     };
-    auto cmp = [] (ShortD x, ShortD y) {return x.distance > y.distance;};
-    set<ShortD, decltype(cmp)>SortDistance(cmp);
+    auto cmp = [] (ShortD x, ShortD y) {return x.distance < y.distance;};
+    vector<multiset<ShortD, decltype(cmp)>>SortDistance;
+    for (int i = 0; i < number; ++i) {
+        multiset<ShortD, decltype(cmp)>sort(cmp);
+        for (int j = 0; j < number; ++j) {
+            sort.insert(ShortD(j, distance[i][j]));
+        }
+        SortDistance.push_back(sort);
+    }
     
-    
+    for_each(SortDistance[2].begin(), SortDistance[2].end(), [](ShortD i) {cout << i.index << endl;});
 }
