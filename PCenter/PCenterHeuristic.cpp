@@ -31,14 +31,15 @@ struct SortD {
 inline int findMinSet (vector<SortD>&, int );
 inline void makeTable (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&);
 inline void findMax (vector<pair<SortD, SortD>>&, vector<int>&);
+inline void addCenter (vector<pair<SortD, SortD>>&, int**, int);
 int main () {
-    int distance[number][number] = {
-        {0,1,3,2,2},
-        {1,0,3,3,4},
-        {3,3,0,2,1},
-        {2,3,2,0,1},
-        {2,4,1,1,0}
-    };
+    
+    int** distance = new int*[number];
+    distance[0] = new int[number]{0,1,3,2,2};
+    distance[1] = new int[number]{1,0,3,3,4};
+    distance[2] = new int[number]{3,3,0,2,1};
+    distance[3] = new int[number]{2,3,2,0,1};
+    distance[4] = new int[number]{2,4,1,1,0};
     
     /*
      *sort the distance
@@ -75,17 +76,26 @@ int main () {
     vector<pair<SortD, SortD>>table;
     makeTable(table, pCenter, SortDistance);
     
-    for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
-    
-    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
+//    for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
+//    
+//    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
     
     int step = 0;
     while (step != 100) {
         vector<int> maxVar;
         findMax(table, maxVar);
-        for_each(maxVar.begin(), maxVar.end(), [](int i) {cout << i << endl;});
-        break;
-        //++step;
+        //for_each(maxVar.begin(), maxVar.end(), [](int i) {cout << i << endl;});
+        int current = rand() % maxVar.size();
+        int lessCount = findMinSet(SortDistance[current], table[current].first.distance);
+        for (int time = 0; time < lessCount; ++time) {
+            if (SortDistance[current][time].index == current) continue;
+            vector<pair<SortD, SortD>>saveTable = table;
+            addCenter(saveTable, distance, SortDistance[current][time].index);
+//            for (auto center : pCenter) {
+//                shit
+//            }
+        }
+        ++step;
     }
     
 }
@@ -136,6 +146,17 @@ inline void findMax (vector<pair<SortD, SortD>>& table, vector<int>& maxVar) {
             max = table[index].first.distance;
             maxVar.clear();
             maxVar.push_back(index);
+        }
+    }
+}
+inline void addCenter (vector<pair<SortD, SortD>>& table, int** distance, int center) {
+    for (int index = 0; index < table.size(); ++index) {
+        if (distance[index][center] < table[index].first.distance) {
+            table[index].second = table[index].first;
+            table[index].first = SortD(center, distance[index][center]);
+        }
+        else if (distance[index][center] < table[index].second.distance) {
+            table[index].second = SortD(center, distance[index][center]);
         }
     }
 }
