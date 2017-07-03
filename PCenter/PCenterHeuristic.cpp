@@ -30,6 +30,7 @@ struct SortD {
 };
 inline int findMinSet (vector<SortD>&, int );
 inline void makeTable (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&);
+inline void findMax (vector<pair<SortD, SortD>>&, vector<int>&);
 int main () {
     int distance[number][number] = {
         {0,1,3,2,2},
@@ -78,6 +79,15 @@ int main () {
     
     for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
     
+    int step = 0;
+    while (step != 100) {
+        vector<int> maxVar;
+        findMax(table, maxVar);
+        for_each(maxVar.begin(), maxVar.end(), [](int i) {cout << i << endl;});
+        break;
+        //++step;
+    }
+    
 }
 inline int findMinSet (vector<SortD>& sort, int current) {
     int begin = 0;
@@ -114,5 +124,18 @@ inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, ve
             ++i;
         }
         table.push_back(make_pair(best, second));
+    }
+}
+inline void findMax (vector<pair<SortD, SortD>>& table, vector<int>& maxVar) {
+    int max = INT32_MIN;
+    for (int index = 0; index < table.size(); ++index) {
+        if (table[index].first.distance == max) {
+            maxVar.push_back(index);
+        }
+        else if (table[index].first.distance > max) {
+            max = table[index].first.distance;
+            maxVar.clear();
+            maxVar.push_back(index);
+        }
     }
 }
