@@ -237,6 +237,7 @@ int main () {
         tabuDelete[bestPair.deleteV] = step + rand() % 10;
         ++step;
         cout << step << endl;
+        
     }
     ftime(&end);
     if (historyBest > longest) {
