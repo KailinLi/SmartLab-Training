@@ -13,11 +13,12 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <sys/timeb.h>
 #include <ctime>
 using namespace std;
 
 //#define count 4
-#define key 35
+#define key 28
 
 struct bestMove {
     int moveV;
@@ -77,8 +78,13 @@ int main () {
         adjacent.push_back(conflict);
         tabu.push_back(initTabu);
     }
+    
+    struct timeb begin, end;
+    ftime(&begin);
     int step = 0;
-    while (step != INT32_MAX) {
+    
+    int historyBest = INT32_MAX;
+    while (step != 9999999) {
 //        int moveV = 0, moveC = 0, tmpTabu = 0;
 //        int maxChange = INT32_MIN;
         int conflict = 0;
@@ -87,6 +93,15 @@ int main () {
             conflict += adjacent[i][VColor[i]];
             for (int k = 0; k < key; ++k) {
                 if (tabu[i][k] > step) continue;
+                if (move.empty()) {
+                    move.push_back(bestMove(i, k, adjacent[i][VColor[i]] - adjacent[i][k]));
+                }
+                else if (move.back().gap > adjacent[i][VColor[i]] - adjacent[i][k]) {
+                    continue;
+                }
+                else if (move.back().gap < adjacent[i][VColor[i]] - adjacent[i][k]) {
+                    move.clear();
+                }
                 move.push_back(bestMove(i, k, adjacent[i][VColor[i]] - adjacent[i][k]));
 //                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
 //                if (maxChange < tmpTabu) {
@@ -96,22 +111,14 @@ int main () {
 //                }
             }
         }
-        vector<std::size_t> queue(move.size());
-        std::size_t begin = 0, end = 0;
-        for (std::size_t i = 0; i < move.size(); ++i) {
-            if (begin == end || move[i].gap == move[queue[begin]].gap) {
-                queue[end++] = i;
-            }
-            else if (move[i].gap > move[queue[begin]].gap) {
-                queue[begin = end++] = i;
-            }
-        }
-        auto item = move[queue[begin + rand() % (end - begin)]];
+        auto item = move[rand() % move.size()];
         if (item.gap == 0) {
             if (!conflict) break;
             else {
+                historyBest = min(historyBest, conflict);
                 tabu[item.moveV][VColor[item.moveV]] = conflict + rand() % 7 + step;
-                for (int i = 0; i < 2; ++i) {
+                int disturb = 1 + rand() % 3;
+                for (int i = 0; i < disturb; ++i) {
                     int randV = rand() % number;
                     int randC = rand() % key;
                     tabu[randV][VColor[randC]] = rand() % 7 + step + conflict;
@@ -124,9 +131,6 @@ int main () {
                 cout << step << " " << conflict << endl;
                 ++step;
                 continue;
-//                tabu[item.moveV][VColor[item.moveV]] = item.gap + rand() % 7 + step;
-//                item.moveV = rand() % number;
-//                item.moveC = rand() % key;
             }
         }
         for (auto neightbour : E[item.moveV]) {
@@ -139,6 +143,7 @@ int main () {
         cout << step << " " << conflict << endl;
         ++step;
     }
+    ftime(&end);
     int i = 0;
     for_each(VColor.begin(), VColor.end(), [&i](int item) {
         cout << ++i << ": ";
@@ -152,6 +157,8 @@ int main () {
     else {
         cout << "fail" << endl;//sum(&adjacent) << endl;
     }
+    cout << "History Best: " << historyBest << endl;
+    cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
 }
 void addNew (map<int, vector<int>> *E, int v1, int v2) {
     auto item = (*E).find(v1);
