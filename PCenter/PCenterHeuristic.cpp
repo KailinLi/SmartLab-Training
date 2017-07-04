@@ -20,7 +20,9 @@
 using namespace std;
 
 #define number 5
-#define p 2
+#define p 3
+
+//#undef DEBUG
 
 struct SortD {
     int index;
@@ -89,31 +91,51 @@ int main () {
     vector<pair<SortD, SortD>>table;
     makeTable(table, pCenter, SortDistance);
     
-    int tabuAdd[number] = {0};
-    int tabuDelete[number] = {0};
+    /*
+     *tabu table
+     */
+    int *tabuAdd = new int[number]{0};
+    int *tabuDelete = new int[number]{0};
+    int longest = 0;
+    
+    /*
+     *save bestHistory
+     */
+    int historyBest = INT32_MAX;
+    list<int> bestPCenter;
     
 #pragma mark iterator
     int step = 0;
-    while (step != 100) {
+    while (step != 10) {
+        
         vector<int> maxVar;
-        int longest = findMax(table, maxVar);
+        longest = findMax(table, maxVar);
+        
+#ifdef DEBUG
         for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
         
         for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
         for_each(maxVar.begin(), maxVar.end(), [](int i) {cout << i << endl;});
         
         cout << "***" << endl;
+#endif
         int current = maxVar[rand() % maxVar.size()];
         int lessCount = findMinSet(SortDistance[current], table[current].first.distance);
         
         priority_queue<Pair> best;
         
         for (int addV = 0; addV < lessCount; ++addV) {
+            /*
+             *no conflict and not in the tabu table
+             */
             if ((SortDistance[current][addV].index == table[current].first.index) || tabuDelete[SortDistance[current][addV].index] > step) continue;
+            /*
+             *store the table prevent to recover
+             */
             vector<pair<SortD, SortD>>saveTable = table;
             addCenter(saveTable, distance, SortDistance[current][addV].index);
+            
             int minLongest = INT32_MAX;
-            int deleteV = 0;
             vector<int> bestlist;
             for (auto center : pCenter) {
                 if (tabuAdd[center] > step) continue;
@@ -127,14 +149,20 @@ int main () {
                     bestlist.push_back(center);
                 }
             }
-            deleteV = bestlist[rand() % bestlist.size()];
+            if (bestlist.empty()) continue;
+            int deleteV = bestlist[rand() % bestlist.size()];
             best.push(Pair(SortDistance[current][addV].index, deleteV, minLongest));
         }
         if (best.empty()) {
-            break;
+            cout << "empty: " << step << endl;
+            best.push(Pair(SortDistance[current][0].index, table[current].first.index, 0));
         }
         auto bestPair = best.top();
         if (bestPair.distance >= longest) {
+            if (historyBest > longest) {
+                historyBest = longest;
+                bestPCenter = pCenter;
+            }
             int randNum = rand() % pCenter.size();
             auto dV = pCenter.begin();
             while (randNum > 0) {
@@ -151,14 +179,16 @@ int main () {
         pCenter.insert(pCenter.begin(), bestPair.addV);
         addCenter(table, distance, bestPair.addV);
         deleteCenter(table, pCenter, SortDistance, bestPair.deleteV);
-        tabuAdd[bestPair.addV] = step + rand() % 5 + bestPair.distance;
-        tabuDelete[bestPair.deleteV] = step + rand() % 5 + bestPair.distance;
+        tabuAdd[bestPair.addV] = step + rand() % 10;
+        tabuDelete[bestPair.deleteV] = step + rand() % 10;
         ++step;
     }
-    vector<int>tmp;
-    cout << "Min: " << findMax(table, tmp) << endl;
-    for_each(pCenter.begin(), pCenter.end(), [](int i) {cout << i << endl;});
-    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
+    if (historyBest > longest) {
+        historyBest = longest;
+        bestPCenter = pCenter;
+    }
+    cout << "Min: " << historyBest << endl;
+    for_each(bestPCenter.begin(), bestPCenter.end(), [](int i) {cout << i << endl;});
     
 }
 inline int findMinSet (vector<SortD>& sort, int current) {
