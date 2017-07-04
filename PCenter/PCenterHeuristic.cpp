@@ -30,9 +30,9 @@ struct SortD {
     SortD() : index(0), distance(0) {}
     SortD(int i, int d) : index(i), distance(d) {}
 };
-struct OrderSort {
-    bool operator() (SortD const &a, SortD const &b) { return a.distance < b.distance; }
-};
+//struct OrderSort {
+//    bool operator() (SortD const &a, SortD const &b) { return a.distance < b.distance; }
+//};
 struct Pair {
     int addV;
     int deleteV;
@@ -47,7 +47,7 @@ struct OrderPairDistance {
 inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath);
 inline int findMinSet (vector<SortD>&, int );
 inline void makeTable (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&);
-inline int findMax (vector<pair<SortD, SortD>>&, vector<int>&);
+inline int findMax (vector<pair<SortD, SortD>>&, size_t&);
 inline void addCenter (vector<pair<SortD, SortD>>&, int**, int);
 inline int simulateDelete(vector<pair<SortD, SortD>>&, int);
 inline void deleteCenter (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&, int);
@@ -59,7 +59,7 @@ int main () {
      */
     int number = 0;
     int p;
-    ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/PCenter/pmed21.txt");
+    ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/PCenter/pmed2.txt");
     
     int in1, in2, in3;
     in >> in1 >> in2 >> in3;
@@ -150,8 +150,9 @@ int main () {
     int step = 0;
     while (step != 80000) {
         
-        vector<int> maxVar;
-        longest = findMax(table, maxVar);
+        //vector<int> maxVar;
+        size_t current;
+        longest = findMax(table, current);
         
 #ifdef DEBUG
         for_each(pCenter.begin(), pCenter.end(), [](int i ) {cout << i << endl;});
@@ -161,7 +162,6 @@ int main () {
         
         cout << "***" << endl;
 #endif
-        int current = maxVar[rand() % maxVar.size()];
         int lessCount = findMinSet(SortDistance[current], table[current].first.distance);
         
         priority_queue<Pair, vector<Pair>, OrderPairDistance> best;
@@ -294,19 +294,20 @@ inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, ve
         table.push_back(make_pair(best, second));
     }
 }
-inline int findMax (vector<pair<SortD, SortD>>& table, vector<int>& maxVar) {
-    priority_queue<SortD, vector<SortD>, OrderSort>maxQ;
-    for (int index = 0; index < table.size(); ++index) {
-        maxQ.push(SortD(index, table[index].first.distance));
+inline int findMax (vector<pair<SortD, SortD>>& table, size_t& current) {
+    vector<std::size_t> queue(table.size());
+    std::size_t begin = 0, end = 0;
+    for (std::size_t i = 0; i < table.size(); ++i) {
+        if (begin == end || table[i].first.distance == table[queue[begin]].first.distance) {
+            queue[end++] = i;
+        }
+        else if (table[i].first.distance > table[queue[begin]].first.distance) {
+            queue[begin = end++] = i;
+        }
     }
-    auto item = maxQ.top();
-    maxQ.pop();
-    maxVar.push_back(item.index);
-    while (!maxQ.empty() && item.distance <= maxQ.top().distance) {
-        maxVar.push_back(maxQ.top().index);
-        maxQ.pop();
-    }
-    return item.distance;
+    current = queue[begin + rand() % (end - begin)];
+    auto item = table[current];
+    return item.first.distance;
 }
 inline void addCenter (vector<pair<SortD, SortD>>& table, int** distance, int addV) {
     for (int index = 0; index < table.size(); ++index) {
