@@ -17,7 +17,14 @@
 using namespace std;
 
 //#define count 4
-#define key 30
+#define key 35
+
+struct bestMove {
+    int moveV;
+    int moveC;
+    int gap;
+    bestMove(int v, int c, int g) : moveV(v), moveC(c), gap(g) {}
+};
 
 void addNew (map<int, vector<int>> *E, int v1, int v2);
 bool check (vector<int> *V, map<int, vector<int>> *E);
@@ -72,36 +79,63 @@ int main () {
     }
     int step = 0;
     while (step != INT32_MAX) {
-        int moveV = 0, moveC = 0, tmpTabu = 0;
-        int maxChange = INT32_MIN;
+//        int moveV = 0, moveC = 0, tmpTabu = 0;
+//        int maxChange = INT32_MIN;
         int conflict = 0;
+        vector<bestMove> move;
         for (int i = 0; i < number; ++i) {
-            conflict |= adjacent[i][VColor[i]];
+            conflict += adjacent[i][VColor[i]];
             for (int k = 0; k < key; ++k) {
                 if (tabu[i][k] > step) continue;
-                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
-                if (maxChange < tmpTabu) {
-                    maxChange = tmpTabu;
-                    moveV = i;
-                    moveC = k;
-                }
+                move.push_back(bestMove(i, k, adjacent[i][VColor[i]] - adjacent[i][k]));
+//                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
+//                if (maxChange < tmpTabu) {
+//                    maxChange = tmpTabu;
+//                    moveV = i;
+//                    moveC = k;
+//                }
             }
         }
-        if (maxChange == 0) {
+        vector<std::size_t> queue(move.size());
+        std::size_t begin = 0, end = 0;
+        for (std::size_t i = 0; i < move.size(); ++i) {
+            if (begin == end || move[i].gap == move[queue[begin]].gap) {
+                queue[end++] = i;
+            }
+            else if (move[i].gap > move[queue[begin]].gap) {
+                queue[begin = end++] = i;
+            }
+        }
+        auto item = move[queue[begin + rand() % (end - begin)]];
+        if (item.gap == 0) {
             if (!conflict) break;
             else {
-                tabu[moveV][VColor[moveV]] = rand() % number + step + number;
-                moveV = rand() % number;
-                moveC = rand() % key;
+                tabu[item.moveV][VColor[item.moveV]] = conflict + rand() % 7 + step;
+                for (int i = 0; i < 2; ++i) {
+                    int randV = rand() % number;
+                    int randC = rand() % key;
+                    tabu[randV][VColor[randC]] = rand() % 7 + step + conflict;
+                    for (auto neightbour : E[randV]) {
+                        --adjacent[neightbour][VColor[randV]];
+                        ++adjacent[neightbour][randC];
+                    }
+                    VColor[randV] = randC;
+                }
+                cout << step << " " << conflict << endl;
+                ++step;
+                continue;
+//                tabu[item.moveV][VColor[item.moveV]] = item.gap + rand() % 7 + step;
+//                item.moveV = rand() % number;
+//                item.moveC = rand() % key;
             }
         }
-        for (auto neightbour : E[moveV]) {
-            --adjacent[neightbour][VColor[moveV]];
-            ++adjacent[neightbour][moveC];
+        for (auto neightbour : E[item.moveV]) {
+            --adjacent[neightbour][VColor[item.moveV]];
+            ++adjacent[neightbour][item.moveC];
         }
         
-        tabu[moveV][VColor[moveV]] = 1 + rand() % 5 + step;
-        VColor[moveV] = moveC;
+        tabu[item.moveV][VColor[item.moveV]] = item.gap + rand() % 7 + step;
+        VColor[item.moveV] = item.moveC;
         cout << step << " " << conflict << endl;
         ++step;
     }
