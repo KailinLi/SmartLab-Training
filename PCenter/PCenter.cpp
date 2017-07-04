@@ -6,7 +6,7 @@
 using namespace std;
 
 
-inline int findMin (vector<int> &way, vector<bool> &inPath);
+inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath);
 int main () {
     try {
         
@@ -43,7 +43,7 @@ int main () {
             way[current] = 0;
             int time = 0;
             while (time < number - 1) {
-                int item = findMin(way, inPath);
+                int item = findMinDijkstra(way, inPath);
                 inPath[item] = true;
                 for (int i = 0; i < number; ++i) {
                     if (!inPath[i] && distance[item][i] != 0 && distance[item][i] + way[item] < way[i]) {
@@ -121,7 +121,7 @@ int main () {
         cout << "Error during optimization" << endl;
     }
 }
-inline int findMin (vector<int> &way, vector<bool> &inPath) {
+inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath) {
     int min = INT32_MAX;
     int res = -1;
     for (int index = 0; index < way.size(); ++index) {
