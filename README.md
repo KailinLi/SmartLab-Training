@@ -10,4 +10,4 @@
 ## Lab2 P-Center
 
 * 线性规划（使用Gurobi求解器）
-* 启发式算法（Not yet finished...）
+* 启发式算法（Tabu Search）
