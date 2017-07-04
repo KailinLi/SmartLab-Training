@@ -17,7 +17,7 @@
 using namespace std;
 
 //#define count 4
-#define key 15
+#define key 30
 
 void addNew (map<int, vector<int>> *E, int v1, int v2);
 bool check (vector<int> *V, map<int, vector<int>> *E);
@@ -26,7 +26,7 @@ int main () {
     
     map<int, vector<int>>E;
 
-    ifstream in("DSJC250.1.col.txt");
+    ifstream in("DSJC250.5.col.txt");
     int v1, v2;
     int number = 0;
     string buf;
@@ -48,8 +48,8 @@ int main () {
         }
     }
     srand(static_cast<unsigned int>(time(NULL)));
-    vector<int>V(number, 0);
-    for_each(V.begin(), V.end(), [](int &item) {
+    vector<int>VColor(number, 0);
+    for_each(VColor.begin(), VColor.end(), [](int &item) {
         item = rand() % key;
     });
     vector<vector<int>>adjacent;
@@ -60,7 +60,7 @@ int main () {
         for (int k = 0; k < key; ++k) {
             int cfs = 0;
             for (auto otherV : E[i]) {
-                if (k == V[otherV]) {
+                if (k == VColor[otherV]) {
                     cfs++;
                 }
             }
@@ -74,12 +74,12 @@ int main () {
     while (step != INT32_MAX) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
-        int tmp = 0;
+        int conflict = 0;
         for (int i = 0; i < number; ++i) {
-            tmp |= adjacent[i][V[i]];
+            conflict |= adjacent[i][VColor[i]];
             for (int k = 0; k < key; ++k) {
                 if (tabu[i][k] > step) continue;
-                tmpTabu = adjacent[i][V[i]] - adjacent[i][k];
+                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
                 if (maxChange < tmpTabu) {
                     maxChange = tmpTabu;
                     moveV = i;
@@ -88,31 +88,31 @@ int main () {
             }
         }
         if (maxChange == 0) {
-            if (!tmp) break;
+            if (!conflict) break;
             else {
-                tabu[moveV][V[moveV]] = rand() % number + step + number;
+                tabu[moveV][VColor[moveV]] = rand() % number + step + number;
                 moveV = rand() % number;
                 moveC = rand() % key;
             }
         }
         for (auto neightbour : E[moveV]) {
-            --adjacent[neightbour][V[moveV]];
+            --adjacent[neightbour][VColor[moveV]];
             ++adjacent[neightbour][moveC];
         }
         
-        tabu[moveV][V[moveV]] = 1 + rand() % 5 + step;
-        V[moveV] = moveC;
-        cout << step << " " << maxChange << endl;
+        tabu[moveV][VColor[moveV]] = 1 + rand() % 5 + step;
+        VColor[moveV] = moveC;
+        cout << step << " " << conflict << endl;
         ++step;
     }
     int i = 0;
-    for_each(V.begin(), V.end(), [&i](int item) {
+    for_each(VColor.begin(), VColor.end(), [&i](int item) {
         cout << ++i << ": ";
         cout << item << "    ";
         if (i % 6 == 0 && i != 1) cout << endl;
     });
     cout << endl;
-    if (check(&V, &E)) {
+    if (check(&VColor, &E)) {
         cout << "success" << endl;
     }
     else {
