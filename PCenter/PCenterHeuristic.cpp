@@ -16,6 +16,7 @@
 #include <set>
 #include <list>
 #include <queue>
+#include <sys/timeb.h>
 #include <ctime>
 using namespace std;
 
@@ -146,6 +147,8 @@ int main () {
     int historyBest = INT32_MAX;
     list<int> bestPCenter;
     
+    struct timeb begin, end;
+    ftime(&begin);
 #pragma mark iterator
     int step = 0;
     while (step != 80000) {
@@ -235,6 +238,7 @@ int main () {
         ++step;
         cout << step << endl;
     }
+    ftime(&end);
     if (historyBest > longest) {
         historyBest = longest;
         bestPCenter = pCenter;
@@ -244,6 +248,7 @@ int main () {
     for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
     cout << "Min: " << historyBest  << "\nCenter: " << endl;
     for_each(bestPCenter.begin(), bestPCenter.end(), [](int i) {cout << i << endl;});
+    cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
 }
 
 inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath) {
