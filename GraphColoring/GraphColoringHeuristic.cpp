@@ -13,19 +13,12 @@
 #include <algorithm>
 #include <map>
 #include <string>
-#include <sys/timeb.h>
 #include <ctime>
+#include <sys/timeb.h>
 using namespace std;
 
 //#define count 4
-//#define key 8
-
-struct bestMove {
-    int moveV;
-    int moveC;
-    int gap;
-    bestMove(int v, int c, int g) : moveV(v), moveC(c), gap(g) {}
-};
+//#define key 15
 
 void addNew (map<int, vector<int>> *E, int v1, int v2);
 bool check (vector<int> *V, map<int, vector<int>> *E);
@@ -38,7 +31,7 @@ int main (int argc, char *argv[]) {
     string getColor = argv[2];
     
     int key = stoi(getColor);
-
+    
     ifstream in("DSJC" + getBuf + ".col.txt");
     int v1, v2;
     int number = 0;
@@ -86,68 +79,43 @@ int main (int argc, char *argv[]) {
     
     struct timeb begin, end;
     ftime(&begin);
-    int step = 0;
     
-    int historyBest = INT32_MAX;
-    while (step != 9999999) {
-//        int moveV = 0, moveC = 0, tmpTabu = 0;
-//        int maxChange = INT32_MIN;
+    int step = 0;
+    while (step != INT32_MAX) {
+        int moveV = 0, moveC = 0, tmpTabu = 0;
+        int maxChange = INT32_MIN;
         int conflict = 0;
-        vector<bestMove> move;
         for (int i = 0; i < number; ++i) {
-            conflict += adjacent[i][VColor[i]];
+            conflict |= adjacent[i][VColor[i]];
             for (int k = 0; k < key; ++k) {
                 if (tabu[i][k] > step) continue;
-                if (move.empty()) {
-                    move.push_back(bestMove(i, k, adjacent[i][VColor[i]] - adjacent[i][k]));
+                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
+                if (maxChange < tmpTabu) {
+                    maxChange = tmpTabu;
+                    moveV = i;
+                    moveC = k;
                 }
-                else if (move.back().gap > adjacent[i][VColor[i]] - adjacent[i][k]) {
-                    continue;
-                }
-                else if (move.back().gap < adjacent[i][VColor[i]] - adjacent[i][k]) {
-                    move.clear();
-                }
-                move.push_back(bestMove(i, k, adjacent[i][VColor[i]] - adjacent[i][k]));
-//                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
-//                if (maxChange < tmpTabu) {
-//                    maxChange = tmpTabu;
-//                    moveV = i;
-//                    moveC = k;
-//                }
             }
         }
-        auto item = move[rand() % move.size()];
-        if (item.gap == 0) {
+        if (maxChange == 0) {
             if (!conflict) break;
             else {
-                historyBest = min(historyBest, conflict);
-                tabu[item.moveV][VColor[item.moveV]] = conflict + rand() % 7 + step;
-                int disturb = 1 + rand() % 2;
-                for (int i = 0; i < disturb; ++i) {
-                    int randV = rand() % number;
-                    int randC = rand() % key;
-                    tabu[randV][VColor[randC]] = rand() % 7 + step + conflict;
-                    for (auto neightbour : E[randV]) {
-                        --adjacent[neightbour][VColor[randV]];
-                        ++adjacent[neightbour][randC];
-                    }
-                    VColor[randV] = randC;
-                }
-                cout << step << " " << conflict << endl;
-                ++step;
-                continue;
+                tabu[moveV][VColor[moveV]] = rand() % number + step + number;
+                moveV = rand() % number;
+                moveC = rand() % key;
             }
         }
-        for (auto neightbour : E[item.moveV]) {
-            --adjacent[neightbour][VColor[item.moveV]];
-            ++adjacent[neightbour][item.moveC];
+        for (auto neightbour : E[moveV]) {
+            --adjacent[neightbour][VColor[moveV]];
+            ++adjacent[neightbour][moveC];
         }
         
-        tabu[item.moveV][VColor[item.moveV]] = item.gap + rand() % 7 + step;
-        VColor[item.moveV] = item.moveC;
-        cout << step << " " << conflict << endl;
+        tabu[moveV][VColor[moveV]] = 1 + rand() % 5 + step;
+        VColor[moveV] = moveC;
+        cout << step << " " << maxChange << endl;
         ++step;
     }
+    
     ftime(&end);
     int i = 0;
     for_each(VColor.begin(), VColor.end(), [&i](int item) {
@@ -162,7 +130,7 @@ int main (int argc, char *argv[]) {
     else {
         cout << "fail" << endl;//sum(&adjacent) << endl;
     }
-    cout << "History Best: " << historyBest << endl;
+    
     cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
 }
 void addNew (map<int, vector<int>> *E, int v1, int v2) {
@@ -194,4 +162,3 @@ bool check (vector<int> *V, map<int, vector<int>> *E) {
 //    }
 //    return sum;
 //}
-
