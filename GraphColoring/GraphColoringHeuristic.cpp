@@ -18,7 +18,7 @@
 using namespace std;
 
 //#define count 4
-#define key 28
+//#define key 8
 
 struct bestMove {
     int moveV;
@@ -30,11 +30,16 @@ struct bestMove {
 void addNew (map<int, vector<int>> *E, int v1, int v2);
 bool check (vector<int> *V, map<int, vector<int>> *E);
 int sum (vector<vector<int>> *adjacent);
-int main () {
+int main (int argc, char *argv[]) {
     
     map<int, vector<int>>E;
+    
+    string getBuf = argv[1];
+    string getColor = argv[2];
+    
+    int key = stoi(getColor);
 
-    ifstream in("DSJC250.5.col.txt");
+    ifstream in("DSJC" + getBuf + ".col.txt");
     int v1, v2;
     int number = 0;
     string buf;
@@ -57,7 +62,7 @@ int main () {
     }
     srand(static_cast<unsigned int>(time(NULL)));
     vector<int>VColor(number, 0);
-    for_each(VColor.begin(), VColor.end(), [](int &item) {
+    for_each(VColor.begin(), VColor.end(), [key](int &item) {
         item = rand() % key;
     });
     vector<vector<int>>adjacent;
@@ -117,7 +122,7 @@ int main () {
             else {
                 historyBest = min(historyBest, conflict);
                 tabu[item.moveV][VColor[item.moveV]] = conflict + rand() % 7 + step;
-                int disturb = 1 + rand() % 3;
+                int disturb = 1 + rand() % 2;
                 for (int i = 0; i < disturb; ++i) {
                     int randV = rand() % number;
                     int randC = rand() % key;
