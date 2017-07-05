@@ -41,9 +41,9 @@ struct Pair {
     Pair() : addV(0), deleteV(0), distance(0) {}
     Pair(int aV, int dV, int d) : addV(aV), deleteV(dV), distance(d) {}
 };
-struct OrderPairDistance {
-    bool operator() (Pair const &a, Pair const &b) { return a.distance > b.distance; }
-};
+//struct OrderPairDistance {
+//    bool operator() (Pair const &a, Pair const &b) { return a.distance > b.distance; }
+//};
 
 inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath);
 inline int findMinSet (vector<SortD>&, int );
@@ -53,14 +53,21 @@ inline void addCenter (vector<pair<SortD, SortD>>&, int**, int);
 inline int simulateDelete(vector<pair<SortD, SortD>>&, int);
 inline void deleteCenter (vector<pair<SortD, SortD>>&, list<int>&, vector<vector<SortD>>&, int);
 inline SortD findSecond (list<int>&, vector<vector<SortD>>&, int);
-int main () {
+int main (int argc, char *argv[]) {
     
     /*
      *read file and init the 2nd array
      */
     int number = 0;
     int p;
-    ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/PCenter/pmed2.txt");
+    //ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/PCenter/pmed2.txt");
+    
+    string file = argv[1];
+    
+    int answer = stoi(argv[2]);
+    
+    
+    ifstream in("pmed" + file + ".txt");
     
     int in1, in2, in3;
     in >> in1 >> in2 >> in3;
@@ -151,7 +158,7 @@ int main () {
     ftime(&begin);
 #pragma mark iterator
     int step = 0;
-    while (step != 80000) {
+    while (step != 9000000) {
         
         //vector<int> maxVar;
         size_t current;
@@ -167,7 +174,9 @@ int main () {
 #endif
         int lessCount = findMinSet(SortDistance[current], table[current].first.distance);
         
-        priority_queue<Pair, vector<Pair>, OrderPairDistance> best;
+//        priority_queue<Pair, vector<Pair>, OrderPairDistance> best;
+        Pair best(-1, -1, INT32_MAX);
+        int Pcount = 0;
         
         for (int addV = 0; addV < lessCount; ++addV) {
             /*
@@ -181,33 +190,50 @@ int main () {
             addCenter(saveTable, distance, SortDistance[current][addV].index);
             
             int minLongest = INT32_MAX;
-            vector<int> bestlist;
+            int deleteV = -1;
+            int count = 0;
             for (auto center : pCenter) {
                 if (tabuAdd[center] > step) continue;
                 int value = simulateDelete(saveTable, center);
                 if (minLongest > value) {
                     minLongest = value;
-                    bestlist.clear();
-                    bestlist.push_back(center);
+                    deleteV = center;
+                    count = 2;
                 }
                 else if (minLongest == value) {
-                    bestlist.push_back(center);
+                    if (!(rand() % count)) {
+                        deleteV = center;
+                        ++count;
+                    }
                 }
             }
-            if (bestlist.empty()) continue;
-            int deleteV = bestlist[rand() % bestlist.size()];
-            best.push(Pair(SortDistance[current][addV].index, deleteV, minLongest));
+            if (deleteV == -1) continue;
+            if (best.distance > minLongest) {
+                best.addV = SortDistance[current][addV].index;
+                best.deleteV = deleteV;
+                best.distance = minLongest;
+                Pcount = 2;
+            }
+            else if (best.distance == minLongest) {
+                if (!(rand() % count)) {
+                    best.addV = SortDistance[current][addV].index;
+                    best.deleteV = deleteV;
+                    ++Pcount;
+                }
+            }
         }
-        if (best.empty()) {
-            cout << "empty: " << step << endl;
-            best.push(Pair(SortDistance[current][0].index, table[current].first.index, 0));
+        if (best.addV == -1) {
+            //cout << "empty: " << step << endl;
+            best.addV = SortDistance[current][0].index;
+            best.deleteV = table[current].first.index;
+            best.distance = 0;
         }
-        auto bestPair = best.top();
-        best.pop();
-        if (bestPair.distance >= longest) {
+        
+        if (best.distance >= longest) {
             if (historyBest > longest) {
                 historyBest = longest;
                 bestPCenter = pCenter;
+                if (historyBest <= answer) break;
             }
             int randNum = rand() % pCenter.size();
             auto dV = pCenter.begin();
@@ -219,24 +245,19 @@ int main () {
             while (find(pCenter.begin(), pCenter.end(), aV) != pCenter.end()) {
                 aV = rand() % number;
             }
-            bestPair = Pair(aV, *dV, distance[aV][*dV]);
+            best.addV = aV;
+            best.deleteV = *dV;
+            best.distance = distance[aV][*dV];
         }
-        else {
-            vector<Pair>bestCandidate{bestPair};
-            while (!best.empty() && bestPair.distance >= best.top().distance) {
-                bestCandidate.push_back(best.top());
-                best.pop();
-            }
-            bestPair = bestCandidate[rand() % bestCandidate.size()];
-        }
-        pCenter.erase(find(pCenter.begin(), pCenter.end(), bestPair.deleteV));
-        pCenter.insert(pCenter.begin(), bestPair.addV);
-        addCenter(table, distance, bestPair.addV);
-        deleteCenter(table, pCenter, SortDistance, bestPair.deleteV);
-        tabuAdd[bestPair.addV] = step + rand() % 10;
-        tabuDelete[bestPair.deleteV] = step + rand() % 10;
+
+        pCenter.erase(find(pCenter.begin(), pCenter.end(), best.deleteV));
+        pCenter.insert(pCenter.begin(), best.addV);
+        addCenter(table, distance, best.addV);
+        deleteCenter(table, pCenter, SortDistance, best.deleteV);
+        tabuAdd[best.addV] = step + rand() % 10;
+        tabuDelete[best.deleteV] = step + rand() % 10;
         ++step;
-        cout << step << endl;
+        //cout << step << endl;
         
     }
     ftime(&end);
@@ -247,9 +268,11 @@ int main () {
     table.clear();
     makeTable(table, bestPCenter, SortDistance);
     for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
-    cout << "Min: " << historyBest  << "\nCenter: " << endl;
+    cout << "Center: " << endl;
     for_each(bestPCenter.begin(), bestPCenter.end(), [](int i) {cout << i << endl;});
+    cout << "Min: " << historyBest  << endl;
     cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
+    cout << "iteration: " << step << endl;
 }
 
 inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath) {
@@ -301,19 +324,22 @@ inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, ve
     }
 }
 inline int findMax (vector<pair<SortD, SortD>>& table, size_t& current) {
-    vector<std::size_t> queue(table.size());
-    std::size_t begin = 0, end = 0;
-    for (std::size_t i = 0; i < table.size(); ++i) {
-        if (begin == end || table[i].first.distance == table[queue[begin]].first.distance) {
-            queue[end++] = i;
+    int tmpMax = INT32_MIN;
+    int count = 0;
+    for (size_t i = 0; i < table.size(); ++i) {
+        if (tmpMax < table[i].first.distance) {
+            tmpMax = table[i].first.distance;
+            current = i;
+            count = 2;
         }
-        else if (table[i].first.distance > table[queue[begin]].first.distance) {
-            queue[begin = end++] = i;
+        else if (tmpMax == table[i].first.distance) {
+            if (!(rand() % count)) {
+                current = i;
+                ++count;
+            }
         }
     }
-    current = queue[begin + rand() % (end - begin)];
-    auto item = table[current];
-    return item.first.distance;
+    return tmpMax;
 }
 inline void addCenter (vector<pair<SortD, SortD>>& table, int** distance, int addV) {
     for (int index = 0; index < table.size(); ++index) {

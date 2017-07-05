@@ -17,22 +17,21 @@
 #include <sys/timeb.h>
 using namespace std;
 
-
-void addNew (map<int, vector<int>> *E, int v1, int v2);
-bool check (vector<int> *V, map<int, vector<int>> *E);
-int sum (vector<vector<int>> *adjacent);
+inline void init (map<int, vector<int>> &E, int *V, int k, int number);
+inline void addNew (map<int, vector<int>> *E, int v1, int v2);
+inline bool check (int *V, map<int, vector<int>> &E);
 int main (int argc, char *argv[]) {
     
     map<int, vector<int>>E;
     
-//    string getBuf = argv[1];
-//    string getColor = argv[2];
-//    
-//    int key = stoi(getColor);
-//
-    string getBuf = "125.1";
-    ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/GraphColoring/DSJC" + getBuf + ".col.txt");
-    int key = 6;
+    string getBuf = argv[1];
+    string getColor = argv[2];
+    
+    int key = stoi(getColor);
+
+    ifstream in("DSJC" + getBuf + ".col.txt");
+//    int key = 6;
+//    ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/GraphColoring/DSJC125.1.col.txt");
     
     int v1, v2;
     int number = 0;
@@ -56,10 +55,9 @@ int main (int argc, char *argv[]) {
     }
     srand(static_cast<unsigned int>(time(NULL)));
     
-    vector<int>VColor(number, 0);
-    for_each(VColor.begin(), VColor.end(), [key](int &item) {
-        item = rand() % key;
-    });
+    int *VColor = new int[number];
+    
+    init(E, VColor, key, number);
     
     
     int conflict = 0;
@@ -136,14 +134,13 @@ int main (int argc, char *argv[]) {
     }
     
     ftime(&end);
-    int i = 0;
-    for_each(VColor.begin(), VColor.end(), [&i](int item) {
-        cout << ++i << ": ";
-        cout << item << "    ";
-        if (i % 6 == 0 && i != 1) cout << endl;
-    });
+    for (int i = 0; i < number; ++i) {
+        cout << i + 1 << ": ";
+        cout << VColor[i] << "    ";
+        if (i % 6 == 0 && i != 0) cout << endl;
+    }
     cout << endl;
-    if (check(&VColor, &E)) {
+    if (check(VColor, E)) {
         cout << "success" << endl;
     }
     else {
@@ -154,7 +151,91 @@ int main (int argc, char *argv[]) {
     
     cout << "iterator:" << step << endl;
 }
-void addNew (map<int, vector<int>> *E, int v1, int v2) {
+inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
+    for (int i = 0; i < number; ++i) {
+        V[i] = -1;
+    }
+    size_t maxDegree = 0;
+    int maxV = -1;
+    int countD = 0;
+    vector<int>color(k, 0);
+    for (int i = 0; i < E.size(); ++i) {
+        if (maxDegree < E[i].size()) {
+            maxDegree = static_cast<int>(E[i].size());
+            maxV = i;
+            countD = 2;
+        }
+        else if (maxDegree == E[i].size()) {
+            if (!(rand() % countD)) {
+                maxV = i;
+                ++countD;
+            }
+        }
+    }
+    V[maxV] = 0;
+    ++color[0];
+    int time = 1;
+    while (time < number) {
+        vector<int>saturation;
+        for (int i = 0; i < number; ++i) {
+            if (V[i] != -1) {
+                saturation.push_back(-1);
+                continue;
+            }
+            vector<int> difference;
+            for (auto item : E[i]) {
+                if (V[item] == -1) continue;
+                difference.push_back(V[item]);
+            }
+            auto newEnd = unique(difference.begin(), difference.end());
+            saturation.push_back(static_cast<int>(distance(difference.begin(), newEnd)));
+        }
+        int maxS = INT32_MIN;
+        int point = -1;
+        int countS = 0;
+        for (int i = 0; i < number; ++i) {
+            if (maxS < saturation[i]) {
+                maxS = saturation[i];
+                point = i;
+                countS = 2;
+            }
+            else if (maxS == saturation[i]) {
+                if (E[point].size() < E[i].size()) {
+                    point = i;
+                    countS = 2;
+                }
+                else if (E[point].size() == E[i].size()) {
+                    if (!(rand() % countS)) {
+                        point = i;
+                        ++countS;
+                    }
+                }
+            }
+        }
+        if (point == -1) break;
+        int used = INT32_MAX;
+        int countC = 0;
+        int chooseColor = -1;
+        for (int i = 0; i < k; ++i) {
+            if (color[i] < used) {
+                used = color[i];
+                chooseColor = i;
+                countC = 2;
+            }
+            else if (color[i] == used) {
+                if (!(rand() % countC)) {
+                    chooseColor = i;
+                    ++countC;
+                }
+            }
+        }
+        V[point] = chooseColor;
+        ++color[chooseColor];
+        ++time;
+    }
+    
+}
+inline void addNew (map<int, vector<int>> *E, int v1, int v2) {
     auto item = (*E).find(v1);
     if (item == (*E).end()) {
         vector<int>insert{v2};
@@ -164,22 +245,13 @@ void addNew (map<int, vector<int>> *E, int v1, int v2) {
         (item->second).push_back(v2);
     }
 }
-bool check (vector<int> *V, map<int, vector<int>> *E) {
-    for (int i = 0; i < (*E).size(); ++i) {
-        for (auto n : (*E)[i]) {
-            if ((*V)[i] == (*V)[n]) {
+inline bool check (int *V, map<int, vector<int>> &E) {
+    for (int i = 0; i < E.size(); ++i) {
+        for (auto n : E[i]) {
+            if (V[i] == V[n]) {
                 return false;
             }
         }
     }
     return true;
 }
-//int sum (vector<vector<int>> *adjacent) {
-//    int sum = 0;
-//    for (auto i : (*adjacent)) {
-//        for (auto j : i) {
-//            sum += j;
-//        }
-//    }
-//    return sum;
-//}
