@@ -3,11 +3,12 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <sys/timeb.h>
 using namespace std;
 
 
 inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath);
-int main () {
+int main (int argc, char *argv[]) {
     try {
         
         /*
@@ -16,7 +17,9 @@ int main () {
         
         int number = 0;
         int p;
-        ifstream in("pmed2.txt");
+        
+        string getBuf = argv[1];
+        ifstream in("pmed"+ getBuf + ".txt");
         
         int in1, in2, in3;
         in >> in1 >> in2 >> in3;
@@ -37,7 +40,6 @@ int main () {
          *Dijkstra
          */
         for (int current = 0; current < number; ++current) {
-            cout << current << endl;
             vector<int>way(number, INT32_MAX);
             vector<bool>inPath(number, false);
             way[current] = 0;
@@ -99,7 +101,11 @@ int main () {
         model.setObjective(getMax, GRB_MINIMIZE);
         
         
+        struct timeb begin, end;
+        
+        ftime(&begin);
         model.optimize();
+        ftime(&end);
         model.write("solve.lp");
         /*
          *print result
@@ -113,6 +119,7 @@ int main () {
         }
         cout << endl;
         cout << "Answer: " << max.get(GRB_DoubleAttr_X) << endl;
+        cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
         
     } catch (GRBException e) {
         cout << "Error code = " << e.getErrorCode() << endl;

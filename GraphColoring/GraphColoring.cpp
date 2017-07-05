@@ -3,17 +3,21 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <sys/timeb.h>
 using namespace std;
 
-#define K 84
+//#define K 84
 bool check (vector<int> *V, vector<pair<int, int>> *E);
-int main () {
+int main (int argc, char *argv[]) {
     try {
         GRBEnv env = GRBEnv();
         GRBModel model = GRBModel(env);
         
+        string getBuf = argv[1];
+        int K = stoi(argv[2]);
         
-        ifstream in("DSJC250.1.col.txt");
+        
+        ifstream in("DSJC"+ getBuf + ".col.txt");
         int v1, v2;
         int number = 0;
         vector<pair<int, int>>E;
@@ -55,7 +59,11 @@ int main () {
             }
         }
         
+        struct timeb begin, end;
+        
+        ftime(&begin);
         model.optimize();
+        ftime(&end);
         
         model.write("solve.lp");
         
@@ -81,6 +89,7 @@ int main () {
             cout << "success" << endl;
         }
         else cout << "fail" << endl;
+        cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
         
     } catch (GRBException e) {
         cout << "Error code = " << e.getErrorCode() << endl;
