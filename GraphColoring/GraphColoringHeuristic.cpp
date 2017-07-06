@@ -95,7 +95,7 @@ int main (int argc, char *argv[]) {
         int count = 0;
         for (int i = 0; i < number; ++i) {
             for (int k = 0; k < key; ++k) {
-                if (VColor[i] == k || tabu[i][k] > step) continue;
+                if (adjacent[i][VColor[i]] == 0 || VColor[i] == k || tabu[i][k] > step) continue;
                 tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
                 if (maxChange < tmpTabu) {
                     maxChange = tmpTabu;
