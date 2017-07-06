@@ -14,6 +14,7 @@
 #include <map>
 #include <string>
 #include <ctime>
+#include <random>
 #include <sys/timeb.h>
 using namespace std;
 
@@ -53,7 +54,10 @@ int main (int argc, char *argv[]) {
             addNew(&E, v2, v1);
         }
     }
-    srand(static_cast<unsigned int>(time(NULL)));
+    
+    random_device rd;
+    default_random_engine R(rd());
+
     
     int *VColor = new int[number];
     
@@ -104,7 +108,7 @@ int main (int argc, char *argv[]) {
                     count = 2;
                 }
                 else if (maxChange == tmpTabu) {
-                    if (!(rand() % count)) {
+                    if (!(R() % count)) {
                         moveV = i;
                         moveC = k;
                         ++count;
@@ -115,9 +119,9 @@ int main (int argc, char *argv[]) {
         if (maxChange <= 0) {
             if (conflict == 2 * maxChange) break;
             else {
-                tabu[moveV][VColor[moveV]] = rand() % number + step + number;
-                moveV = rand() % number;
-                moveC = rand() % key;
+                tabu[moveV][VColor[moveV]] = R() % number + step + number;
+                moveV = R() % number;
+                moveC = R() % key;
                 maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
             }
         }
@@ -126,10 +130,10 @@ int main (int argc, char *argv[]) {
             ++adjacent[neightbour][moveC];
         }
         
-        tabu[moveV][VColor[moveV]] = 1 + rand() % 5 + step;
+        tabu[moveV][VColor[moveV]] = 1 + R() % 5 + step;
         VColor[moveV] = moveC;
         conflict -= 2 * maxChange;
-        //cout << step << " " << conflict << endl;
+//        cout << step << " " << conflict << endl;
         ++step;
     }
     
@@ -152,6 +156,8 @@ int main (int argc, char *argv[]) {
     cout << "iterator:" << step << endl;
 }
 inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
+    random_device rd;
+    default_random_engine R(rd());
     for (int i = 0; i < number; ++i) {
         V[i] = -1;
     }
@@ -166,7 +172,7 @@ inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
             countD = 2;
         }
         else if (maxDegree == E[i].size()) {
-            if (!(rand() % countD)) {
+            if (!(R() % countD)) {
                 maxV = i;
                 ++countD;
             }
@@ -205,7 +211,7 @@ inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
                     countS = 2;
                 }
                 else if (E[point].size() == E[i].size()) {
-                    if (!(rand() % countS)) {
+                    if (!(R() % countS)) {
                         point = i;
                         ++countS;
                     }
@@ -223,7 +229,7 @@ inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
                 countC = 2;
             }
             else if (color[i] == used) {
-                if (!(rand() % countC)) {
+                if (!(R() % countC)) {
                     chooseColor = i;
                     ++countC;
                 }
