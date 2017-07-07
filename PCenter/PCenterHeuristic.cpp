@@ -17,6 +17,7 @@
 #include <list>
 #include <queue>
 #include <sys/timeb.h>
+#include <random>
 #include <ctime>
 using namespace std;
 
@@ -123,14 +124,15 @@ int main (int argc, char *argv[]) {
      *initial
      */
     list<int>pCenter;
-    srand(static_cast<unsigned int>(time(NULL)));
-    int current = rand() % number;
+    random_device rd;
+    default_random_engine R(rd());
+    int current = R() % number;
     pCenter.insert(pCenter.begin(), current);
     while (pCenter.size() < p) {
         auto center = *SortDistance[current].rbegin();
         int size = findMinSet(SortDistance[center.index], center.distance);
         do {
-            current = SortDistance[center.index][rand() % size].index;
+            current = SortDistance[center.index][R() % size].index;
         } while (find(pCenter.begin(), pCenter.end(), current) != pCenter.end());
         pCenter.insert(pCenter.begin(), current);
     }
@@ -201,7 +203,7 @@ int main (int argc, char *argv[]) {
                     count = 2;
                 }
                 else if (minLongest == value) {
-                    if (!(rand() % count)) {
+                    if (!(R() % count)) {
                         deleteV = center;
                         ++count;
                     }
@@ -215,7 +217,7 @@ int main (int argc, char *argv[]) {
                 Pcount = 2;
             }
             else if (best.distance == minLongest) {
-                if (!(rand() % count)) {
+                if (!(R() % count)) {
                     best.addV = SortDistance[current][addV].index;
                     best.deleteV = deleteV;
                     ++Pcount;
@@ -235,15 +237,15 @@ int main (int argc, char *argv[]) {
                 bestPCenter = pCenter;
                 if (historyBest <= answer) break;
             }
-            int randNum = rand() % pCenter.size();
+            int randNum = R() % pCenter.size();
             auto dV = pCenter.begin();
             while (randNum > 0) {
                 ++dV;
                 --randNum;
             }
-            int aV = rand() % number;
+            int aV = R() % number;
             while (find(pCenter.begin(), pCenter.end(), aV) != pCenter.end()) {
-                aV = rand() % number;
+                aV = R() % number;
             }
             best.addV = aV;
             best.deleteV = *dV;
@@ -254,8 +256,8 @@ int main (int argc, char *argv[]) {
         pCenter.insert(pCenter.begin(), best.addV);
         addCenter(table, distance, best.addV);
         deleteCenter(table, pCenter, SortDistance, best.deleteV);
-        tabuAdd[best.addV] = step + rand() % 10;
-        tabuDelete[best.deleteV] = step + rand() % 10;
+        tabuAdd[best.addV] = step + R() % 10;
+        tabuDelete[best.deleteV] = step + R() % 10;
         ++step;
         //cout << step << endl;
         
@@ -330,6 +332,7 @@ inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, ve
     }
 }
 inline int findMax (vector<pair<SortD, SortD>>& table, size_t& current) {
+    
     int tmpMax = INT32_MIN;
     int count = 0;
     for (size_t i = 0; i < table.size(); ++i) {
