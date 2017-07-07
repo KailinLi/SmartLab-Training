@@ -154,6 +154,7 @@ int main (int argc, char *argv[]) {
     cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
     
     cout << "iterator:" << step << endl;
+    delete [] VColor;
 }
 inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
     random_device rd;

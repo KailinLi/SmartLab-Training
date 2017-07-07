@@ -113,7 +113,7 @@ int main (int argc, char *argv[]) {
     for (int i = 0; i < number; ++i) {
         vector<SortD> sortSet;
         for (int j = 0; j < number; ++j) {
-            sortSet.push_back(SortD(j, distance[i][j]));
+            sortSet.emplace_back(j, distance[i][j]);
         }
         stable_sort(sortSet.begin(), sortSet.end(), [](SortD x, SortD y) {return x.distance < y.distance;});
         SortDistance.push_back(sortSet);
@@ -273,6 +273,12 @@ int main (int argc, char *argv[]) {
     cout << "Min: " << historyBest  << endl;
     cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
     cout << "iteration: " << step << endl;
+    for (int i = 0; i < number; ++i) {
+        delete distance[i];
+    }
+    delete[] distance;
+    delete [] tabuAdd;
+    delete [] tabuDelete;
 }
 
 inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath) {
