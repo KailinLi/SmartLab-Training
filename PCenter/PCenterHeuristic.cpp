@@ -176,7 +176,7 @@ int main (int argc, char *argv[]) {
 #endif
         int lessCount = findMinSet(SortDistance[current], table[current].first.distance);
         
-//        priority_queue<Pair, vector<Pair>, OrderPairDistance> best;
+        //        priority_queue<Pair, vector<Pair>, OrderPairDistance> best;
         Pair best(-1, -1, INT32_MAX);
         int Pcount = 0;
         
@@ -251,7 +251,7 @@ int main (int argc, char *argv[]) {
             best.deleteV = *dV;
             best.distance = distance[aV][*dV];
         }
-
+        
         pCenter.erase(find(pCenter.begin(), pCenter.end(), best.deleteV));
         pCenter.insert(pCenter.begin(), best.addV);
         addCenter(table, distance, best.addV);
@@ -295,18 +295,14 @@ inline int findMinDijkstra (vector<int> &way, vector<bool> &inPath) {
     return res;
 }
 inline int findMinSet (vector<SortD>& sort, int current) {
-    int begin = 0;
-    int end = static_cast<int>(sort.size());
-    int middle = (begin + end) / 2;
-    for (; middle != begin && middle != end; middle = (begin + end) / 2) {
-        if (sort[middle].distance <= current) {
-            begin = middle;
-        }
-        else {
-            end = middle;
-        }
+    int begin = 0, end = static_cast<int>(sort.size()) - 1;
+    int middle = 0;
+    while (begin < end) {
+        middle = ((begin + end) >> 1) + 1;
+        if (sort[middle].distance > current) end = middle - 1;
+        else begin = middle;
     }
-    return (sort[middle].distance == current) ? middle + 1 : middle;
+    return middle + 1;
 }
 inline void makeTable (vector<pair<SortD, SortD>>& table, list<int>& pCenter, vector<vector<SortD>>& SortDistance) {
     for (int index = 0; index < SortDistance.size(); ++index) {
