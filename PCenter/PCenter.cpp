@@ -3,7 +3,6 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
-#include <sys/timeb.h>
 using namespace std;
 
 
@@ -100,12 +99,8 @@ int main (int argc, char *argv[]) {
         GRBLinExpr getMax = max;
         model.setObjective(getMax, GRB_MINIMIZE);
         
-        
-        struct timeb begin, end;
-        
-        ftime(&begin);
+
         model.optimize();
-        ftime(&end);
         model.write("solve.lp");
         /*
          *print result
@@ -119,7 +114,6 @@ int main (int argc, char *argv[]) {
         }
         cout << endl;
         cout << "Answer: " << max.get(GRB_DoubleAttr_X) << endl;
-        cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
         
     } catch (GRBException e) {
         cout << "Error code = " << e.getErrorCode() << endl;

@@ -14,8 +14,8 @@
 #include <map>
 #include <string>
 #include <ctime>
+#include <iomanip>
 #include <random>
-#include <sys/timeb.h>
 using namespace std;
 
 inline void init (map<int, vector<int>> &E, int *V, int k, int number);
@@ -93,8 +93,7 @@ int main (int argc, char *argv[]) {
         tabu.push_back(initTabu);
     }
     
-    struct timeb begin, end;
-    ftime(&begin);
+    clock_t begin = clock();
     
     int step = 0;
     
@@ -154,7 +153,9 @@ int main (int argc, char *argv[]) {
         ++step;
     }
     
-    ftime(&end);
+    clock_t end = clock();
+    double time = (double)(end - begin)/CLOCKS_PER_SEC;
+    
     for (int i = 0; i < number; ++i) {
         cout << i + 1 << ": ";
         cout << VColor[i] << "    ";
@@ -167,8 +168,8 @@ int main (int argc, char *argv[]) {
     else {
         cout << "fail" << endl;
     }
-    
-    cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
+    cout<<setiosflags(ios::fixed);
+    cout << "time: " << setprecision(4) << time << endl;
     
     cout << "iterator:" << step << endl;
     delete [] VColor;

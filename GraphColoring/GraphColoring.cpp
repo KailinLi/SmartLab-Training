@@ -3,7 +3,6 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
-#include <sys/timeb.h>
 using namespace std;
 
 //#define K 84
@@ -59,11 +58,8 @@ int main (int argc, char *argv[]) {
             }
         }
         
-        struct timeb begin, end;
         
-        ftime(&begin);
         model.optimize();
-        ftime(&end);
         
         model.write("solve.lp");
         
@@ -89,7 +85,6 @@ int main (int argc, char *argv[]) {
             cout << "success" << endl;
         }
         else cout << "fail" << endl;
-        cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
         
     } catch (GRBException e) {
         cout << "Error code = " << e.getErrorCode() << endl;

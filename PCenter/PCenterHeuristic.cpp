@@ -16,7 +16,6 @@
 #include <set>
 #include <list>
 #include <queue>
-#include <sys/timeb.h>
 #include <random>
 #include <iomanip>
 #include <ctime>
@@ -157,8 +156,7 @@ int main (int argc, char *argv[]) {
     int historyBest = INT32_MAX;
     list<int> bestPCenter;
     
-    struct timeb begin, end;
-    ftime(&begin);
+    clock_t begin = clock();
 #pragma mark iterator
     int step = 0;
     while (step != 1000000) {
@@ -263,7 +261,10 @@ int main (int argc, char *argv[]) {
         //cout << step << endl;
         
     }
-    ftime(&end);
+    
+    clock_t end = clock();
+    double time = (double)(end - begin)/CLOCKS_PER_SEC;
+    
     if (historyBest > longest) {
         historyBest = longest;
         bestPCenter = pCenter;
@@ -277,12 +278,11 @@ int main (int argc, char *argv[]) {
     //cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
     //cout << "iteration: " << step << endl;
     cout<<setiosflags(ios::fixed);
-    double time = ((end.time - begin.time)*1000 + (end.millitm - begin.millitm)) / 1000.0;
-    cout << "  | " << "pmed" << file << " | " << answer << " | " << historyBest << " | " <<  setprecision(3) << time << " | " << step << " | " << endl;
+    cout << "  | " << "pmed" << file << " | " << answer << " | " << historyBest << " | " <<  setprecision(4) << time << " | " << step << " | " << endl;
     for (int i = 0; i < number; ++i) {
         delete distance[i];
     }
-    delete[] distance;
+    delete [] distance;
     delete [] tabuAdd;
     delete [] tabuDelete;
 }
