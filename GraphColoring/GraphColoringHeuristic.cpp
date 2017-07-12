@@ -23,6 +23,9 @@ inline void addNew (map<int, vector<int>> *E, int v1, int v2);
 inline bool check (int *V, map<int, vector<int>> &E);
 int main (int argc, char *argv[]) {
     
+    /*
+     *read file and init
+     */
     map<int, vector<int>>E;
     
     string getBuf = argv[1];
@@ -31,8 +34,6 @@ int main (int argc, char *argv[]) {
     int key = stoi(getColor);
 
     ifstream in("DSJC" + getBuf + ".col.txt");
-//    int key = 6;
-//    ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/GraphColoring/DSJC125.1.col.txt");
     
     int v1, v2;
     int number = 0;
@@ -55,9 +56,16 @@ int main (int argc, char *argv[]) {
         }
     }
     
+    /*
+     *get random
+     */
     random_device rd;
     default_random_engine R(rd());
 
+    
+    /*
+     *make table
+     */
     
     int *VColor = new int[number];
     
@@ -90,8 +98,9 @@ int main (int argc, char *argv[]) {
     
     int step = 0;
     
-    //int historyBest = INT32_MAX;
-    
+    /*
+     *begin iterator
+     */
     
     while (step != INT32_MAX) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
@@ -107,6 +116,7 @@ int main (int argc, char *argv[]) {
                     moveC = k;
                     count = 2;
                 }
+                //pick max improvement randomly
                 else if (maxChange == tmpTabu) {
                     if (!(R() % count)) {
                         moveV = i;
@@ -116,6 +126,9 @@ int main (int argc, char *argv[]) {
                 }
             }
         }
+        /*
+         *handle local best
+         */
         if (maxChange <= 0) {
             if (conflict == 2 * maxChange) break;
             else {
@@ -125,15 +138,19 @@ int main (int argc, char *argv[]) {
                 maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
             }
         }
+        /*
+         *update table
+         */
         for (auto neightbour : E[moveV]) {
             --adjacent[neightbour][VColor[moveV]];
             ++adjacent[neightbour][moveC];
         }
-        
+        /*
+         *update
+         */
         tabu[moveV][VColor[moveV]] = 1 + R() % 5 + step;
         VColor[moveV] = moveC;
         conflict -= 2 * maxChange;
-//        cout << step << " " << conflict << endl;
         ++step;
     }
     
@@ -148,7 +165,7 @@ int main (int argc, char *argv[]) {
         cout << "success" << endl;
     }
     else {
-        cout << "fail" << endl;//sum(&adjacent) << endl;
+        cout << "fail" << endl;
     }
     
     cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
@@ -156,6 +173,9 @@ int main (int argc, char *argv[]) {
     cout << "iterator:" << step << endl;
     delete [] VColor;
 }
+/*
+ *greed init
+ */
 inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
     random_device rd;
     default_random_engine R(rd());

@@ -17,7 +17,7 @@ int main (int argc, char *argv[]) {
         int K = stoi(argv[2]);
         
         
-        ifstream in("DSJC"+ getBuf + ".col.txt");
+        ifstream in(getBuf + ".col.txt");
         int v1, v2;
         int number = 0;
         vector<pair<int, int>>E;

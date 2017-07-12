@@ -18,6 +18,7 @@
 #include <queue>
 #include <sys/timeb.h>
 #include <random>
+#include <iomanip>
 #include <ctime>
 using namespace std;
 
@@ -160,7 +161,7 @@ int main (int argc, char *argv[]) {
     ftime(&begin);
 #pragma mark iterator
     int step = 0;
-    while (step != 9000000) {
+    while (step != 1000000) {
         
         //vector<int> maxVar;
         size_t current;
@@ -269,12 +270,15 @@ int main (int argc, char *argv[]) {
     }
     table.clear();
     makeTable(table, bestPCenter, SortDistance);
-    for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
-    cout << "Center: " << endl;
-    for_each(bestPCenter.begin(), bestPCenter.end(), [](int i) {cout << i << endl;});
-    cout << "Min: " << historyBest  << endl;
-    cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
-    cout << "iteration: " << step << endl;
+    //for_each(table.begin(), table.end(), [](pair<SortD, SortD> item) {cout << item.first.index << " " << item.first.distance << " | " << item.second.index << " " << item.second.distance << endl;});
+    //cout << "Center: " << endl;
+    //for_each(bestPCenter.begin(), bestPCenter.end(), [](int i) {cout << i << endl;});
+    //cout << "Min: " << historyBest  << endl;
+    //cout << "time: " << (end.time - begin.time)*1000 + (end.millitm - begin.millitm)  << endl;
+    //cout << "iteration: " << step << endl;
+    cout<<setiosflags(ios::fixed);
+    double time = ((end.time - begin.time)*1000 + (end.millitm - begin.millitm)) / 1000.0;
+    cout << "  | " << "pmed" << file << " | " << answer << " | " << historyBest << " | " <<  setprecision(3) << time << " | " << step << " | " << endl;
     for (int i = 0; i < number; ++i) {
         delete distance[i];
     }
