@@ -18,15 +18,15 @@
 #include <random>
 using namespace std;
 
-inline void init (map<int, vector<int>> &E, int *V, int k, int number);
-inline void addNew (map<int, vector<int>> *E, int v1, int v2);
-inline bool check (int *V, map<int, vector<int>> &E);
+inline void init (vector<vector<int>> &E, vector<int> &V, int k, int number);
+inline void addNew (vector<vector<int>> &E, int v1, int v2);
+inline bool check (vector<int> &V, vector<vector<int>> &E);
 int main (int argc, char *argv[]) {
     
     /*
      *read file and init
      */
-    map<int, vector<int>>E;
+    vector<vector<int>>E;
     
     string getBuf = argv[1];
     string getColor = argv[2];
@@ -45,14 +45,15 @@ int main (int argc, char *argv[]) {
             } while (buf != "e" && buf != "p");
             if (buf == "p") {
                 in >> buf >> number;
+                E = vector<vector<int>>(number);
                 continue;
             }
             in >> v1;
             in >> v2;
             --v1;
             --v2;
-            addNew(&E, v1, v2);
-            addNew(&E, v2, v1);
+            addNew(E, v1, v2);
+            addNew(E, v2, v1);
         }
     }
     
@@ -67,12 +68,12 @@ int main (int argc, char *argv[]) {
      *make table
      */
     
-    int *VColor = new int[number];
+    vector<int> VColor(number, 0);
     
     init(E, VColor, key, number);
     
     
-    int conflict = 0;
+//    int conflict = 0;
     vector<vector<int>>adjacent;
     vector<vector<int>>tabu;
     for (int i = 0; i < number; ++i) {
@@ -85,7 +86,7 @@ int main (int argc, char *argv[]) {
                     ++cfs;
                 }
             }
-            if (k == VColor[i]) conflict += cfs;
+//            if (k == VColor[i]) conflict += cfs;
             Vconflict.push_back(cfs);
             initTabu.push_back(0);
         }
@@ -101,13 +102,14 @@ int main (int argc, char *argv[]) {
      *begin iterator
      */
     
-    while (step != INT32_MAX) {
+    while (step != 900000000) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
         int count = 0;
         for (int i = 0; i < number; ++i) {
+            if (adjacent[i][VColor[i]] == 0) continue;
             for (int k = 0; k < key; ++k) {
-                if (adjacent[i][VColor[i]] == 0 || VColor[i] == k || tabu[i][k] > step) continue;
+                if (VColor[i] == k || tabu[i][k] > step) continue;
                 tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
                 if (maxChange < tmpTabu) {
                     maxChange = tmpTabu;
@@ -128,14 +130,16 @@ int main (int argc, char *argv[]) {
         /*
          *handle local best
          */
-        if (maxChange <= 0) {
-            if (conflict == 2 * maxChange) break;
-            else {
-                tabu[moveV][VColor[moveV]] = R() % number + step + number;
-                moveV = R() % number;
-                moveC = R() % key;
-                maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
-            }
+        if (maxChange == INT32_MIN) break;
+//        tabu[moveV][VColor[moveV]] = R() % number + step + number;
+//        moveV = R() % number;
+//        moveC = R() % key;
+//        maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
+        if (maxChange <= 0 && !(R() % 4)) {
+            tabu[moveV][VColor[moveV]] = R() % number + step + number;
+            moveV = R() % number;
+            moveC = R() % key;
+            maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
         }
         /*
          *update table
@@ -149,7 +153,7 @@ int main (int argc, char *argv[]) {
          */
         tabu[moveV][VColor[moveV]] = 1 + R() % 5 + step;
         VColor[moveV] = moveC;
-        conflict -= 2 * maxChange;
+        //conflict -= 2 * maxChange;
         ++step;
     }
     
@@ -172,12 +176,11 @@ int main (int argc, char *argv[]) {
     cout << "time: " << setprecision(4) << time << endl;
     
     cout << "iterator:" << step << endl;
-    delete [] VColor;
 }
 /*
  *greed init
  */
-inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
+inline void init (vector<vector<int>> &E, vector<int> &V, int k, int number) {
     random_device rd;
     default_random_engine R(rd());
     for (int i = 0; i < number; ++i) {
@@ -263,17 +266,10 @@ inline void init (map<int, vector<int>> &E, int *V, int k, int number) {
     }
     
 }
-inline void addNew (map<int, vector<int>> *E, int v1, int v2) {
-    auto item = (*E).find(v1);
-    if (item == (*E).end()) {
-        vector<int>insert{v2};
-        (*E).insert(make_pair(v1, insert));
-    }
-    else {
-        (item->second).push_back(v2);
-    }
+inline void addNew (vector<vector<int>> &E, int v1, int v2) {
+    E[v1].push_back(v2);
 }
-inline bool check (int *V, map<int, vector<int>> &E) {
+inline bool check (vector<int> &V, vector<vector<int>> &E) {
     for (int i = 0; i < E.size(); ++i) {
         for (auto n : E[i]) {
             if (V[i] == V[n]) {
