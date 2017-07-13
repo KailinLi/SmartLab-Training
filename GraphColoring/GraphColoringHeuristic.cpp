@@ -130,16 +130,18 @@ int main (int argc, char *argv[]) {
         /*
          *handle local best
          */
-        if (maxChange == INT32_MIN) break;
 //        tabu[moveV][VColor[moveV]] = R() % number + step + number;
 //        moveV = R() % number;
 //        moveC = R() % key;
 //        maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
-        if (maxChange <= 0 && !(R() % 4)) {
-            tabu[moveV][VColor[moveV]] = R() % number + step + number;
-            moveV = R() % number;
-            moveC = R() % key;
-            maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
+        if (maxChange <= 0) {// && !(R() % 4)) {
+            if (maxChange == INT32_MIN) break;
+            if (!(R() % 2)) {
+                tabu[moveV][VColor[moveV]] = R() % number + step + number;
+                moveV = R() % number;
+                moveC = R() % key;
+                maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
+            }
         }
         /*
          *update table
