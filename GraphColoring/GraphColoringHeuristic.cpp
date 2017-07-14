@@ -162,20 +162,21 @@ int main (int argc, char *argv[]) {
     clock_t end = clock();
     double time = (double)(end - begin)/CLOCKS_PER_SEC;
     
-    for (int i = 0; i < number; ++i) {
-        cout << i + 1 << ": ";
-        cout << VColor[i] << "    ";
-        if (i % 6 == 0 && i != 0) cout << endl;
-    }
-    cout << endl;
+//    for (int i = 0; i < number; ++i) {
+//        cout << i + 1 << ": ";
+//        cout << VColor[i] << "    ";
+//        if (i % 6 == 0 && i != 0) cout << endl;
+//    }
+//    cout << endl;
     if (check(VColor, E)) {
-        cout << "success" << endl;
+        cout << "success" << " | ";
     }
     else {
-        cout << "fail" << endl;
+        cout << "  fail " << " | ";
     }
+    cout << argv[1] << " | " << argv[2] << " | ";
     cout<<setiosflags(ios::fixed);
-    cout << "time: " << setprecision(4) << time << endl;
+    cout << "time: " << setprecision(4) << time << " | ";
     
     cout << "iterator:" << step << endl;
 }
