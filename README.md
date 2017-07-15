@@ -46,6 +46,8 @@
   | DSJC250.9 |  72  |  72  | 0.9491  |  199075  |
   | DSJC500.1 |  12  |  12  | 155.834 | 62133360 |
 
+<img src="http://oklhb00qa.bkt.clouddn.com/simple-min.jpg" style="zoom:50%;" />
+
 ## Lab2 P-Center
 
 * 线性规划（使用Gurobi求解器）
