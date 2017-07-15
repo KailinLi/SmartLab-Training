@@ -7,16 +7,6 @@
 //
 
 #include "GraphColoringHeuristic.hpp"
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <string>
-#include <ctime>
-#include <iomanip>
-#include <random>
-using namespace std;
 
 inline void init (vector<vector<int>> &E, vector<int> &V, int k, int number);
 inline void addNew (vector<vector<int>> &E, int v1, int v2);
@@ -179,6 +169,7 @@ int main (int argc, char *argv[]) {
     cout << "time: " << setprecision(4) << time << " | ";
     
     cout << "iterator:" << step << endl;
+    visual(VColor, E, key);
 }
 /*
  *greed init
