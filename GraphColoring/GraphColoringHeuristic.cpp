@@ -8,9 +8,9 @@
 
 #include "GraphColoringHeuristic.hpp"
 
-inline void init (vector<vector<int>> &E, vector<int> &V, int k, int number);
+inline void init (vector<vector<int>> &E, int *V, int k, int number);
 inline void addNew (vector<vector<int>> &E, int v1, int v2);
-inline bool check (vector<int> &V, vector<vector<int>> &E);
+inline bool check (int *V, vector<vector<int>> &E);
 int main (int argc, char *argv[]) {
     
     /*
@@ -58,30 +58,26 @@ int main (int argc, char *argv[]) {
      *make table
      */
     
-    vector<int> VColor(number, 0);
+    int *VColor = new int[number];
     
     init(E, VColor, key, number);
     
     
-//    int conflict = 0;
-    vector<vector<int>>adjacent;
-    vector<vector<int>>tabu;
+    int conflict = 0;
+    int **adjacent = new int* [number];
+    int **tabu = new int* [number];
     for (int i = 0; i < number; ++i) {
-        vector<int> Vconflict;
-        vector<int> initTabu;
+        adjacent[i] = new int [key];
+        tabu[i] = new int [key];
         for (int k = 0; k < key; ++k) {
             int cfs = 0;
             for (auto otherV : E[i]) {
-                if (k == VColor[otherV]) {
-                    ++cfs;
-                }
+                if (k == VColor[otherV]) ++cfs;
             }
-//            if (k == VColor[i]) conflict += cfs;
-            Vconflict.push_back(cfs);
-            initTabu.push_back(0);
+            if (k == VColor[i]) conflict += cfs;
+            adjacent[i][k] = cfs;
+            tabu[i][k] = 0;
         }
-        adjacent.push_back(Vconflict);
-        tabu.push_back(initTabu);
     }
     
     clock_t begin = clock();
@@ -92,7 +88,11 @@ int main (int argc, char *argv[]) {
      *begin iterator
      */
     
-    while (step != 900000000) {
+    
+    int historyBest = conflict;
+    int bestStep = 0;
+    
+    while (step != 90000000) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
         int count = 0;
@@ -126,6 +126,31 @@ int main (int argc, char *argv[]) {
 //        maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
         if (maxChange <= 0) {// && !(R() % 4)) {
             if (maxChange == INT32_MIN) break;
+            if (historyBest > conflict) {
+                historyBest = conflict;
+                bestStep = step;
+            }
+            else if (bestStep < step - 500000 && !(R() % 2)){
+                printf("%s\n", "reset");
+                conflict = 0;
+                bestStep = step;
+                for (int i = 0; i < number; ++i) {
+                    VColor[i] = R() % key;
+                }
+                for (int i = 0; i < number; ++i) {
+                    for (int k = 0; k < key; ++k) {
+                        int cfs = 0;
+                        for (auto otherV : E[i]) {
+                            if (k == VColor[otherV]) ++cfs;
+                        }
+                        if (k == VColor[i]) conflict += cfs;
+                        adjacent[i][k] = cfs;
+                        tabu[i][k] = 0;
+                    }
+                }
+                ++step;
+                continue;
+            }
             if (!(R() % 2)) {
                 tabu[moveV][VColor[moveV]] = R() % number + step + number;
                 moveV = R() % number;
@@ -145,19 +170,14 @@ int main (int argc, char *argv[]) {
          */
         tabu[moveV][VColor[moveV]] = 1 + R() % 5 + step;
         VColor[moveV] = moveC;
-        //conflict -= 2 * maxChange;
+        conflict -= 2 * maxChange;
         ++step;
     }
     
     clock_t end = clock();
     double time = (double)(end - begin)/CLOCKS_PER_SEC;
     
-//    for (int i = 0; i < number; ++i) {
-//        cout << i + 1 << ": ";
-//        cout << VColor[i] << "    ";
-//        if (i % 6 == 0 && i != 0) cout << endl;
-//    }
-//    cout << endl;
+
     if (check(VColor, E)) {
         cout << "success" << " | ";
     }
@@ -169,12 +189,14 @@ int main (int argc, char *argv[]) {
     cout << "time: " << setprecision(4) << time << " | ";
     
     cout << "iterator:" << step << endl;
-    visual(VColor, E, key);
+    
+    cout << historyBest << " | " << bestStep << endl;
+    //visual(VColor, E, key);
 }
 /*
  *greed init
  */
-inline void init (vector<vector<int>> &E, vector<int> &V, int k, int number) {
+inline void init (vector<vector<int>> &E, int *V, int k, int number) {
     random_device rd;
     default_random_engine R(rd());
     for (int i = 0; i < number; ++i) {
@@ -263,7 +285,7 @@ inline void init (vector<vector<int>> &E, vector<int> &V, int k, int number) {
 inline void addNew (vector<vector<int>> &E, int v1, int v2) {
     E[v1].push_back(v2);
 }
-inline bool check (vector<int> &V, vector<vector<int>> &E) {
+inline bool check (int *V, vector<vector<int>> &E) {
     for (int i = 0; i < E.size(); ++i) {
         for (auto n : E[i]) {
             if (V[i] == V[n]) {

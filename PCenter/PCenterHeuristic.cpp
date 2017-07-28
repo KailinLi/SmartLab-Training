@@ -133,6 +133,7 @@ int main (int argc, char *argv[]) {
         int size = findMinSet(SortDistance[center.index], center.distance);
         do {
             current = SortDistance[center.index][R() % size].index;
+            ++size;
         } while (find(pCenter.begin(), pCenter.end(), current) != pCenter.end());
         pCenter.insert(pCenter.begin(), current);
     }
