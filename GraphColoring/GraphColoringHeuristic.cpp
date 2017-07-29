@@ -7,7 +7,6 @@
 //
 
 #include "GraphColoringHeuristic.hpp"
-
 inline void init (vector<vector<int>> &E, int *V, int k, int number);
 inline void addNew (vector<vector<int>> &E, int v1, int v2);
 inline bool check (int *V, vector<vector<int>> &E);
@@ -24,9 +23,8 @@ int main (int argc, char *argv[]) {
     int key = stoi(getColor);
 
     ifstream in("DSJC" + getBuf + ".col.txt");
-    
-    int v1, v2;
     int number = 0;
+    int v1, v2;
     string buf;
     if (in) {
         while (!in.eof()) {
@@ -50,9 +48,12 @@ int main (int argc, char *argv[]) {
     /*
      *get random
      */
-    random_device rd;
-    default_random_engine R(rd());
-
+    std::random_device rd;
+    std::mt19937 R(rd());
+    std::uniform_int_distribution<> randomByNumber(0, number - 1);
+    std::uniform_int_distribution<> randomByKey(0, key - 1);
+    std::uniform_int_distribution<> randomByFive(0, 4);
+    std::uniform_int_distribution<> randomByTwo(0,1);
     
     /*
      *make table
@@ -130,31 +131,31 @@ int main (int argc, char *argv[]) {
                 historyBest = conflict;
                 bestStep = step;
             }
-            else if (bestStep < step - 500000 && !(R() % 2)){
-                printf("%s\n", "reset");
-                conflict = 0;
-                bestStep = step;
-                for (int i = 0; i < number; ++i) {
-                    VColor[i] = R() % key;
-                }
-                for (int i = 0; i < number; ++i) {
-                    for (int k = 0; k < key; ++k) {
-                        int cfs = 0;
-                        for (auto otherV : E[i]) {
-                            if (k == VColor[otherV]) ++cfs;
-                        }
-                        if (k == VColor[i]) conflict += cfs;
-                        adjacent[i][k] = cfs;
-                        tabu[i][k] = 0;
-                    }
-                }
-                ++step;
-                continue;
-            }
-            if (!(R() % 2)) {
-                tabu[moveV][VColor[moveV]] = R() % number + step + number;
-                moveV = R() % number;
-                moveC = R() % key;
+//            else if (bestStep < step - 500000 && !(R() % 2)){
+//                printf("%s\n", "reset");
+//                conflict = 0;
+//                bestStep = step;
+//                for (int i = 0; i < number; ++i) {
+//                    VColor[i] = R() % key;
+//                }
+//                for (int i = 0; i < number; ++i) {
+//                    for (int k = 0; k < key; ++k) {
+//                        int cfs = 0;
+//                        for (auto otherV : E[i]) {
+//                            if (k == VColor[otherV]) ++cfs;
+//                        }
+//                        if (k == VColor[i]) conflict += cfs;
+//                        adjacent[i][k] = cfs;
+//                        tabu[i][k] = 0;
+//                    }
+//                }
+//                ++step;
+//                continue;
+//            }
+            if (!randomByTwo(R)) {
+                tabu[moveV][VColor[moveV]] = randomByNumber(R) + step + number;
+                moveV = randomByNumber(R);
+                moveC = randomByKey(R);
                 maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
             }
         }
@@ -168,7 +169,7 @@ int main (int argc, char *argv[]) {
         /*
          *update
          */
-        tabu[moveV][VColor[moveV]] = 1 + R() % 5 + step;
+        tabu[moveV][VColor[moveV]] = 1 + randomByFive(R) + step;
         VColor[moveV] = moveC;
         conflict -= 2 * maxChange;
         ++step;
@@ -193,6 +194,8 @@ int main (int argc, char *argv[]) {
     cout << historyBest << " | " << bestStep << endl;
     //visual(VColor, E, key);
 }
+
+
 /*
  *greed init
  */

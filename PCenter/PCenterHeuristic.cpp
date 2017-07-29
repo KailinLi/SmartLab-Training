@@ -61,7 +61,6 @@ int main (int argc, char *argv[]) {
      */
     int number = 0;
     int p;
-    //ifstream in("/Users/likailin/Desktop/Gurobi/SmartLab Training/PCenter/pmed2.txt");
     
     string file = argv[1];
     
@@ -124,9 +123,12 @@ int main (int argc, char *argv[]) {
      *initial
      */
     list<int>pCenter;
-    random_device rd;
-    default_random_engine R(rd());
-    int current = R() % number;
+    std::random_device rd;
+    std::mt19937 R(rd());
+    std::uniform_int_distribution<> randomByNumber(0, number - 1);
+    std::uniform_int_distribution<> randomByP(0, p - 1);
+    std::uniform_int_distribution<> randomByTen(0, 9);
+    int current = randomByNumber(R);
     pCenter.insert(pCenter.begin(), current);
     while (pCenter.size() < p) {
         auto center = *SortDistance[current].rbegin();
@@ -237,15 +239,15 @@ int main (int argc, char *argv[]) {
                 bestPCenter = pCenter;
                 if (historyBest <= answer) break;
             }
-            int randNum = R() % pCenter.size();
+            int randNum = randomByP(R);
             auto dV = pCenter.begin();
             while (randNum > 0) {
                 ++dV;
                 --randNum;
             }
-            int aV = R() % number;
+            int aV = randomByNumber(R);
             while (find(pCenter.begin(), pCenter.end(), aV) != pCenter.end()) {
-                aV = R() % number;
+                aV = randomByNumber(R);
             }
             best.addV = aV;
             best.deleteV = *dV;
@@ -256,8 +258,8 @@ int main (int argc, char *argv[]) {
         pCenter.insert(pCenter.begin(), best.addV);
         addCenter(table, distance, best.addV);
         deleteCenter(table, pCenter, SortDistance, best.deleteV);
-        tabuAdd[best.addV] = step + R() % 10;
-        tabuDelete[best.deleteV] = step + R() % 10;
+        tabuAdd[best.addV] = step + randomByTen(R);
+        tabuDelete[best.deleteV] = step + randomByTen(R);
         ++step;
         //cout << step << endl;
         
