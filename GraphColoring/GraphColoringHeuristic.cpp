@@ -125,33 +125,15 @@ int main (int argc, char *argv[]) {
 //        moveV = R() % number;
 //        moveC = R() % key;
 //        maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
+        printf("%d | ", conflict);
+        if (!step % 12) printf("\n");
         if (maxChange <= 0) {// && !(R() % 4)) {
             if (maxChange == INT32_MIN) break;
             if (historyBest > conflict) {
                 historyBest = conflict;
                 bestStep = step;
             }
-//            else if (bestStep < step - 500000 && !(R() % 2)){
-//                printf("%s\n", "reset");
-//                conflict = 0;
-//                bestStep = step;
-//                for (int i = 0; i < number; ++i) {
-//                    VColor[i] = R() % key;
-//                }
-//                for (int i = 0; i < number; ++i) {
-//                    for (int k = 0; k < key; ++k) {
-//                        int cfs = 0;
-//                        for (auto otherV : E[i]) {
-//                            if (k == VColor[otherV]) ++cfs;
-//                        }
-//                        if (k == VColor[i]) conflict += cfs;
-//                        adjacent[i][k] = cfs;
-//                        tabu[i][k] = 0;
-//                    }
-//                }
-//                ++step;
-//                continue;
-//            }
+
             if (!randomByTwo(R)) {
                 tabu[moveV][VColor[moveV]] = randomByNumber(R) + step + number;
                 moveV = randomByNumber(R);
