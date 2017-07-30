@@ -7,9 +7,19 @@
 //
 
 #include "GraphColoringHeuristic.hpp"
+
+
+std::random_device rd;
+std::mt19937 R(rd());
+
+
 inline void init (vector<vector<int>> &E, int *V, int k, int number);
 inline void addNew (vector<vector<int>> &E, int v1, int v2);
 inline bool check (int *V, vector<vector<int>> &E);
+inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict);
+
+const int population = 20;
+
 int main (int argc, char *argv[]) {
     
     /*
@@ -48,25 +58,182 @@ int main (int argc, char *argv[]) {
     /*
      *get random
      */
-    std::random_device rd;
-    std::mt19937 R(rd());
     std::uniform_int_distribution<> randomByNumber(0, number - 1);
     std::uniform_int_distribution<> randomByKey(0, key - 1);
     std::uniform_int_distribution<> randomByFive(0, 4);
     std::uniform_int_distribution<> randomByTwo(0,1);
+    std::uniform_int_distribution<> randomByTwenty(0,19);
+    
     
     /*
-     *make table
+     *make group
      */
     
-    int *VColor = new int[number];
+    int *VColor = nullptr;
+    int **adjacent = nullptr;
+    int **tabu = nullptr;
+    int maxNumber = 0;
+    int maxConflict = INT32_MIN;
+    vector< pair<vector<vector<int>>, int > >elitesGroup;
+    
+    
+    for (int current = 0; current < population; ++current) {
+        
+        VColor = new int[number];
+        for (int i = 0; i < number; ++i) {
+            VColor[i] = randomByKey(R);
+        }
+        int conflict = 0;
+        adjacent = new int* [number];
+        tabu = new int* [number];
+        for (int i = 0; i < number; ++i) {
+            adjacent[i] = new int [key];
+            tabu[i] = new int [key];
+            for (int k = 0; k < key; ++k) {
+                int cfs = 0;
+                for (auto otherV : E[i]) {
+                    if (k == VColor[otherV]) ++cfs;
+                }
+                if (k == VColor[i]) conflict += cfs;
+                adjacent[i][k] = cfs;
+                tabu[i][k] = 0;
+            }
+        }
+        tabuSearch(VColor, adjacent, tabu, number, key, E, &conflict);
+        
+        if (conflict == 0) {
+            maxConflict = INT32_MAX;
+        }
+        else if (conflict > maxConflict) {
+            maxConflict = conflict;
+            maxNumber = current;
+        }
+        //shit
+        vector<vector<int>> person(key, vector<int>());
+        
+        for (int i = 0; i < number; ++i) {
+            person[VColor[i]].push_back(i);
+        }
+        elitesGroup.push_back(make_pair(person, conflict));
+        delete [] VColor;
+        for (int i = 0; i < number; ++i) {
+            delete [] adjacent[i];
+            delete [] tabu[i];
+        }
+        delete [] adjacent;
+        delete [] tabu;
+    }
+    
+    if (maxConflict != INT32_MAX) {
+        int time = 0;
+        while (time < 10000) {
+            int father;
+            int mother;
+            do {
+                father = randomByTwenty(R);
+            } while (father == maxNumber);
+            do {
+                mother = randomByTwenty(R);
+            } while (mother == maxNumber || mother == father);
+            
+            set<int>hadUse;
+            vector<vector<int>>& fatherV = elitesGroup[father].first;
+            vector<vector<int>>& motherV = elitesGroup[mother].first;
+            VColor = new int[number];
+            bool flag = true;
+            
+            for (int c = 0; c < key; ++c) {
+                int bestStruct = 0;
+                int bestStructCount = INT32_MIN;
+                if (flag) {
+                    for (int item = 0; item < fatherV.size(); ++item) {
+                        int best = static_cast<int>(count_if(fatherV[item].begin(), fatherV[item].end(), [hadUse](int n) { return hadUse.find(n) == hadUse.end();}));
+                        if (best > bestStructCount) {
+                            bestStructCount = best;
+                            bestStruct = item;
+                        }
+                    }
+                    for (int item : fatherV[bestStruct]) {
+                        hadUse.insert(item);
+                        VColor[item] = c;
+                    }
+                }
+                else {
+                    for (int item = 0; item < motherV.size(); ++item) {
+                        int best = static_cast<int>(count_if(motherV[item].begin(), motherV[item].end(), [hadUse](int n) { return hadUse.find(n) == hadUse.end();}));
+                        if (best > bestStructCount) {
+                            bestStructCount = best;
+                            bestStruct = item;
+                        }
+                    }
+                    for (int item : motherV[bestStruct]) {
+                        hadUse.insert(item);
+                        VColor[item] = c;
+                    }
+                }
+            }
+            
+            for (auto item : fatherV) {
+                for (int i = 0; i < item.size(); ++i) {
+                    if (hadUse.find(item[i]) == hadUse.end()) {
+                        VColor[item[i]] = randomByKey(R);
+                    }
+                }
+            }
+            int conflict = 0;
+            adjacent = new int* [number];
+            tabu = new int* [number];
+            for (int i = 0; i < number; ++i) {
+                adjacent[i] = new int [key];
+                tabu[i] = new int [key];
+                for (int k = 0; k < key; ++k) {
+                    int cfs = 0;
+                    for (auto otherV : E[i]) {
+                        if (k == VColor[otherV]) ++cfs;
+                    }
+                    if (k == VColor[i]) conflict += cfs;
+                    adjacent[i][k] = cfs;
+                    tabu[i][k] = 0;
+                }
+            }
+            tabuSearch(VColor, adjacent, tabu, number, key, E, &conflict);
+            
+            if (conflict == 0) {
+                break;
+            }
+            
+            elitesGroup[maxNumber].first.clear();
+            vector<vector<int>> person(key, vector<int>());
+            
+            for (int i = 0; i < number; ++i) {
+                person[VColor[i]].push_back(i);
+            }
+            elitesGroup[maxNumber].first = person;
+            
+            elitesGroup[maxNumber].second = conflict;
+            maxConflict = INT32_MIN;
+            for (int i = 0; i < population; ++i) {
+                if (elitesGroup[i].second > maxConflict) {
+                    maxConflict = elitesGroup[i].second;
+                    maxNumber = i;
+                }
+            }
+            delete [] VColor;
+            for (int i = 0; i < number; ++i) {
+                delete [] adjacent[i];
+                delete [] tabu[i];
+            }
+            delete [] adjacent;
+            delete [] tabu;
+        }
+    }
+    
+    
     
     init(E, VColor, key, number);
     
     
     int conflict = 0;
-    int **adjacent = new int* [number];
-    int **tabu = new int* [number];
     for (int i = 0; i < number; ++i) {
         adjacent[i] = new int [key];
         tabu[i] = new int [key];
@@ -93,7 +260,7 @@ int main (int argc, char *argv[]) {
     int historyBest = conflict;
     int bestStep = 0;
     
-    while (step != 90000000) {
+    while (step != 1000) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
         int count = 0;
@@ -121,12 +288,7 @@ int main (int argc, char *argv[]) {
         /*
          *handle local best
          */
-//        tabu[moveV][VColor[moveV]] = R() % number + step + number;
-//        moveV = R() % number;
-//        moveC = R() % key;
-//        maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
-        printf("%d | ", conflict);
-        if (!step % 12) printf("\n");
+
         if (maxChange <= 0) {// && !(R() % 4)) {
             if (maxChange == INT32_MIN) break;
             if (historyBest > conflict) {
@@ -279,4 +441,56 @@ inline bool check (int *V, vector<vector<int>> &E) {
         }
     }
     return true;
+}
+inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict) {
+    
+    std::uniform_int_distribution<> randomByNumber(0, number - 1);
+    std::uniform_int_distribution<> randomByKey(0, key - 1);
+    std::uniform_int_distribution<> randomByFive(0, 4);
+    std::uniform_int_distribution<> randomByTwo(0,1);
+    
+    int step = 0;
+    while (step != 20000) {
+        int moveV = 0, moveC = 0, tmpTabu = 0;
+        int maxChange = INT32_MIN;
+        int count = 0;
+        for (int i = 0; i < number; ++i) {
+            if (adjacent[i][VColor[i]] == 0) continue;
+            for (int k = 0; k < key; ++k) {
+                if (VColor[i] == k || tabu[i][k] > step) continue;
+                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
+                if (maxChange < tmpTabu) {
+                    maxChange = tmpTabu;
+                    moveV = i;
+                    moveC = k;
+                    count = 2;
+                }
+                else if (maxChange == tmpTabu) {
+                    if (!(R() % count)) {
+                        moveV = i;
+                        moveC = k;
+                        ++count;
+                    }
+                }
+            }
+        }
+        if (maxChange <= 0) {
+            if (maxChange == INT32_MIN) break;
+            
+            if (!randomByTwo(R)) {
+                tabu[moveV][VColor[moveV]] = randomByNumber(R) + step + number;
+                moveV = randomByNumber(R);
+                moveC = randomByKey(R);
+                maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
+            }
+        }
+        for (auto neightbour : E[moveV]) {
+            --adjacent[neightbour][VColor[moveV]];
+            ++adjacent[neightbour][moveC];
+        }
+        tabu[moveV][VColor[moveV]] = 1 + randomByFive(R) + step;
+        VColor[moveV] = moveC;
+        conflict -= 2 * maxChange;
+        ++step;
+    }
 }
