@@ -125,8 +125,7 @@ int main (int argc, char *argv[]) {
 //        moveV = R() % number;
 //        moveC = R() % key;
 //        maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
-        printf("%d | ", conflict);
-        if (!step % 12) printf("\n");
+
         if (maxChange <= 0) {// && !(R() % 4)) {
             if (maxChange == INT32_MIN) break;
             if (historyBest > conflict) {
