@@ -90,10 +90,10 @@ int main (int argc, char *argv[]) {
      */
     
     
-    int historyBest = conflict;
-    int bestStep = 0;
+    //int historyBest = conflict;
+    //int bestStep = 0;
     
-    while (step != 90000000) {
+    while (step != 300000000) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
         int count = 0;
@@ -128,10 +128,10 @@ int main (int argc, char *argv[]) {
 
         if (maxChange <= 0) {// && !(R() % 4)) {
             if (maxChange == INT32_MIN) break;
-            if (historyBest > conflict) {
-                historyBest = conflict;
-                bestStep = step;
-            }
+//            if (historyBest > conflict) {
+//                historyBest = conflict;
+//                bestStep = step;
+//            }
 
             if (!randomByTwo(R)) {
                 tabu[moveV][VColor[moveV]] = randomByNumber(R) + step + number;
@@ -172,7 +172,7 @@ int main (int argc, char *argv[]) {
     
     cout << "iterator:" << step << endl;
     
-    cout << historyBest << " | " << bestStep << endl;
+    //cout << historyBest << " | " << bestStep << endl;
     //visual(VColor, E, key);
 }
 
