@@ -131,7 +131,7 @@ int main (int argc, char *argv[]) {
     if (maxConflict != INT32_MAX) {
         int time = 0;
         while (time < 10000) {
-            printf("***%d***\n", time);
+//            printf("***%d***\n", time);
             int father;
             int mother;
             do {
@@ -232,7 +232,9 @@ int main (int argc, char *argv[]) {
             
             elitesGroup[maxNumber].second = conflict;
             maxConflict = INT32_MIN;
+//            int minconflict = INT32_MAX;
             for (int i = 0; i < population; ++i) {
+//                if (elitesGroup[i].second < minconflict) minconflict = elitesGroup[i].second;
                 if (elitesGroup[i].second > maxConflict) {
                     maxConflict = elitesGroup[i].second;
                     maxNumber = i;
@@ -244,9 +246,10 @@ int main (int argc, char *argv[]) {
                     ++count;
                 }
             }
-            printf("%d\n", maxConflict);
+//            printf("%d ** %d\n", maxConflict, minconflict);
             ++time;
         }
+        cout << time << endl;
     }
     
     
