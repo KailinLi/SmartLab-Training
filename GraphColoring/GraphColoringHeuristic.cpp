@@ -17,7 +17,7 @@ inline void addNew (vector<vector<int>> &E, int v1, int v2);
 inline bool check (int *V, vector<vector<int>> &E);
 inline void tabuSearchInit (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict);
 inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict);
-const int population = 10;
+const int population = 8;
 
 int main (int argc, char *argv[]) {
     
@@ -105,7 +105,7 @@ int main (int argc, char *argv[]) {
             }
         }
         
-        tabuSearchInit(VColor, adjacent, tabu, number, key, E, &conflict);
+        tabuSearch(VColor, adjacent, tabu, number, key, E, &conflict);
         
         if (conflict == 0) {
             maxConflict = INT32_MAX;
@@ -247,19 +247,23 @@ int main (int argc, char *argv[]) {
             elitesGroup[maxNumber].second = conflict;
             maxConflict = INT32_MIN;
             minConflict = INT32_MAX;
+            int save = maxNumber;
 //            int minconflict = INT32_MAX;
             for (int i = 0; i < population; ++i) {
 //                if (elitesGroup[i].second < minconflict) minconflict = elitesGroup[i].second;
                 auto &conflict = elitesGroup[i].second;
-                if (conflict > maxConflict) {
-                    maxConflict = conflict;
-                    maxNumber = i;
-                    maxCount = 2;
-                }
-                else if (conflict == maxConflict && !(R() % maxCount)) {
-                    maxConflict = conflict;
-                    maxNumber = i;
-                    ++maxCount;
+                printf("%d*", conflict);
+                if (i != save || randomByTwo(R)) {
+                    if (conflict > maxConflict) {
+                        maxConflict = conflict;
+                        maxNumber = i;
+                        maxCount = 2;
+                    }
+                    else if (conflict == maxConflict && !(R() % maxCount)) {
+                        maxConflict = conflict;
+                        maxNumber = i;
+                        ++maxCount;
+                    }
                 }
                 
                 if (conflict < minConflict) {
@@ -273,7 +277,7 @@ int main (int argc, char *argv[]) {
                     ++minCount;
                 }
             }
-//            printf("%d ** %d\n", maxConflict, minconflict);
+            printf("\n%d ** %d\n", maxConflict, minConflict);
             ++time;
         }
         cout << time << endl;
@@ -326,58 +330,7 @@ inline bool check (int *V, vector<vector<int>> &E) {
     }
     return true;
 }
-inline void tabuSearchInit (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict) {
-    
-    std::uniform_int_distribution<> randomByNumber(0, number - 1);
-    std::uniform_int_distribution<> randomByKey(0, key - 1);
-    std::uniform_int_distribution<> randomByFive(0, 4);
-    std::uniform_int_distribution<> randomByTwo(0,1);
-    
-    int step = 0;
-    while (step != 10000) {
-        int moveV = 0, moveC = 0, tmpTabu = 0;
-        int maxChange = INT32_MIN;
-        int count = 0;
-        for (int i = 0; i < number; ++i) {
-            if (adjacent[i][VColor[i]] == 0) continue;
-            for (int k = 0; k < key; ++k) {
-                if (VColor[i] == k || tabu[i][k] > step) continue;
-                tmpTabu = adjacent[i][VColor[i]] - adjacent[i][k];
-                if (maxChange < tmpTabu) {
-                    maxChange = tmpTabu;
-                    moveV = i;
-                    moveC = k;
-                    count = 2;
-                }
-                else if (maxChange == tmpTabu) {
-                    if (!(R() % count)) {
-                        moveV = i;
-                        moveC = k;
-                        ++count;
-                    }
-                }
-            }
-        }
-        if (maxChange <= 0) {
-            if (maxChange == INT32_MIN) break;
-            
-            if (!randomByTwo(R)) {
-                tabu[moveV][VColor[moveV]] = randomByNumber(R) + step + number;
-                moveV = randomByNumber(R);
-                moveC = randomByKey(R);
-                maxChange = adjacent[moveV][VColor[moveV]] - adjacent[moveV][moveC];
-            }
-        }
-        for (auto neightbour : E[moveV]) {
-            --adjacent[neightbour][VColor[moveV]];
-            ++adjacent[neightbour][moveC];
-        }
-        tabu[moveV][VColor[moveV]] = 1 + randomByFive(R) + step;
-        VColor[moveV] = moveC;
-        *conflict -= 2 * maxChange;
-        ++step;
-    }
-}
+
 inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict) {
     
     std::uniform_int_distribution<> randomByNumber(0, number - 1);
@@ -388,7 +341,7 @@ inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int
     int step = 0;
     int HBConflict = INT32_MAX;
     vector<int> HBVColor(number, 0);
-    while (step != 20000) {
+    while (step != 150000) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
         int count = 0;
