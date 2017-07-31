@@ -79,7 +79,10 @@ int main (int argc, char *argv[]) {
     
     int maxNumber = 0;
     int maxConflict = INT32_MIN;
-    int count = 0;
+    int minNumber = 0;
+    int minConflict = INT32_MAX;
+    int maxCount = 0;
+    int minCount = 0;
     vector< pair<vector<vector<int>>, int > >elitesGroup;
     
     
@@ -111,12 +114,23 @@ int main (int argc, char *argv[]) {
         else if (conflict > maxConflict) {
             maxConflict = conflict;
             maxNumber = current;
-            count = 2;
+            maxCount = 2;
         }
-        else if (conflict == maxConflict &&!(R() % count)) {
+        else if (conflict == maxConflict &&!(R() % maxCount)) {
             maxConflict = conflict;
             maxNumber = current;
-            ++count;
+            ++maxCount;
+        }
+        
+        if (conflict < minConflict) {
+            minConflict = conflict;
+            minNumber = current;
+            minCount = 2;
+        }
+        else if (conflict == minConflict && !(R() % minCount)) {
+            minConflict = conflict;
+            minNumber = current;
+            ++minCount;
         }
         
         vector<vector<int>> person(key, vector<int>());
@@ -134,11 +148,9 @@ int main (int argc, char *argv[]) {
         int time = 0;
         while (time < 50000) {
 //            printf("***%d***\n", time);
-            int father;
+            int father = minNumber;
             int mother;
-            do {
-                father = randomByPopulation(R);
-            } while (father == maxNumber);
+
             do {
                 mother = randomByPopulation(R);
             } while (mother == maxNumber || mother == father);
@@ -163,12 +175,12 @@ int main (int argc, char *argv[]) {
                         if (best > bestStructCount) {
                             bestStructCount = best;
                             bestStruct = item;
-                            count = 2;
+                            maxCount = 2;
                         }
-                        else if (best == bestStructCount && !(R() % count)) {
+                        else if (best == bestStructCount && !(R() % maxCount)) {
                             bestStructCount = best;
                             bestStruct = item;
-                            ++count;
+                            ++maxCount;
                         }
                     }
                     for (int item : fatherV[bestStruct]) {
@@ -183,12 +195,12 @@ int main (int argc, char *argv[]) {
                         if (best > bestStructCount) {
                             bestStructCount = best;
                             bestStruct = item;
-                            count = 2;
+                            maxCount = 2;
                         }
-                        else if (best == bestStructCount && !(R() % count)) {
+                        else if (best == bestStructCount && !(R() % maxCount)) {
                             bestStructCount = best;
                             bestStruct = item;
-                            ++count;
+                            ++maxCount;
                         }
                     }
                     for (int item : motherV[bestStruct]) {
@@ -234,18 +246,31 @@ int main (int argc, char *argv[]) {
             
             elitesGroup[maxNumber].second = conflict;
             maxConflict = INT32_MIN;
+            minConflict = INT32_MAX;
 //            int minconflict = INT32_MAX;
             for (int i = 0; i < population; ++i) {
 //                if (elitesGroup[i].second < minconflict) minconflict = elitesGroup[i].second;
-                if (elitesGroup[i].second > maxConflict) {
-                    maxConflict = elitesGroup[i].second;
+                auto &conflict = elitesGroup[i].second;
+                if (conflict > maxConflict) {
+                    maxConflict = conflict;
                     maxNumber = i;
-                    count = 2;
+                    maxCount = 2;
                 }
-                else if (elitesGroup[i].second == maxConflict && !(R() % count)) {
-                    maxConflict = elitesGroup[i].second;
+                else if (conflict == maxConflict && !(R() % maxCount)) {
+                    maxConflict = conflict;
                     maxNumber = i;
-                    ++count;
+                    ++maxCount;
+                }
+                
+                if (conflict < minConflict) {
+                    minConflict = conflict;
+                    minNumber = i;
+                    minCount = 2;
+                }
+                else if (conflict == minConflict && !(R() % minCount)) {
+                    minConflict = conflict;
+                    minNumber = i;
+                    ++minCount;
                 }
             }
 //            printf("%d ** %d\n", maxConflict, minconflict);
