@@ -15,8 +15,8 @@ std::mt19937 R(rd());
 
 inline void addNew (vector<vector<int>> &E, int v1, int v2);
 inline bool check (int *V, vector<vector<int>> &E);
+inline void tabuSearchInit (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict);
 inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict);
-inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict, int time);
 const int population = 10;
 
 int main (int argc, char *argv[]) {
@@ -82,7 +82,7 @@ int main (int argc, char *argv[]) {
     int count = 0;
     vector< pair<vector<vector<int>>, int > >elitesGroup;
     
-    clock_t begin = clock();
+    
     for (int current = 0; current < population; ++current) {
         
         for (int i = 0; i < number; ++i) {
@@ -102,7 +102,7 @@ int main (int argc, char *argv[]) {
             }
         }
         
-        tabuSearch(VColor, adjacent, tabu, number, key, E, &conflict);
+        tabuSearchInit(VColor, adjacent, tabu, number, key, E, &conflict);
         
         if (conflict == 0) {
             maxConflict = INT32_MAX;
@@ -128,9 +128,11 @@ int main (int argc, char *argv[]) {
 
     }
     
+    clock_t begin = clock();
+    
     if (maxConflict != INT32_MAX) {
         int time = 0;
-        while (time < 10000) {
+        while (time < 50000) {
 //            printf("***%d***\n", time);
             int father;
             int mother;
@@ -141,7 +143,7 @@ int main (int argc, char *argv[]) {
                 mother = randomByPopulation(R);
             } while (mother == maxNumber || mother == father);
             
-            set<int>hadUse;
+//            set<int>hadUse;
             vector<vector<int>>& fatherV = elitesGroup[father].first;
             vector<vector<int>>& motherV = elitesGroup[mother].first;
             
@@ -150,7 +152,6 @@ int main (int argc, char *argv[]) {
                 VColor[i] = -1;
             }
             
-            
             bool flag = true;
             
             for (int c = 0; c < key; ++c) {
@@ -158,7 +159,7 @@ int main (int argc, char *argv[]) {
                 int bestStructCount = INT32_MIN;
                 if (flag) {
                     for (int item = 0; item < key; ++item) {
-                        int best = static_cast<int>(count_if(fatherV[item].begin(), fatherV[item].end(), [hadUse](int n) { return hadUse.find(n) == hadUse.end();}));
+                        int best = static_cast<int>(count_if(fatherV[item].begin(), fatherV[item].end(), [VColor](int n) { return VColor[n] == -1;}));
                         if (best > bestStructCount) {
                             bestStructCount = best;
                             bestStruct = item;
@@ -171,14 +172,14 @@ int main (int argc, char *argv[]) {
                         }
                     }
                     for (int item : fatherV[bestStruct]) {
-                        hadUse.insert(item);
+//                        hadUse.insert(item);
                         VColor[item] = c;
                     }
                     flag = false;
                 }
                 else {
                     for (int item = 0; item < key; ++item) {
-                        int best = static_cast<int>(count_if(motherV[item].begin(), motherV[item].end(), [hadUse](int n) { return hadUse.find(n) == hadUse.end();}));
+                        int best = static_cast<int>(count_if(motherV[item].begin(), motherV[item].end(), [VColor](int n) { return VColor[n] == -1;}));
                         if (best > bestStructCount) {
                             bestStructCount = best;
                             bestStruct = item;
@@ -191,7 +192,7 @@ int main (int argc, char *argv[]) {
                         }
                     }
                     for (int item : motherV[bestStruct]) {
-                        hadUse.insert(item);
+//                        hadUse.insert(item);
                         VColor[item] = c;
                     }
                     flag = true;
@@ -216,18 +217,19 @@ int main (int argc, char *argv[]) {
             }
 //            int maxTime = 10000 + (time<<4);
 //            if (maxTime > 200000) maxTime = 200000;
-            tabuSearch(VColor, adjacent, tabu, number, key, E, &conflict, 20000);
+            tabuSearch(VColor, adjacent, tabu, number, key, E, &conflict);
             
             if (conflict == 0) {
                 break;
             }
+            auto tmp = &elitesGroup[maxNumber].first;
             
             for (int i = 0; i < key; ++i) {
-                (elitesGroup[maxNumber].first)[i].clear();
+                (*tmp)[i].clear();
             }
             
             for (int i = 0; i < number; ++i) {
-                ((elitesGroup[maxNumber].first)[VColor[i]]).push_back(i);
+                ((*tmp)[VColor[i]]).push_back(i);
             }
             
             elitesGroup[maxNumber].second = conflict;
@@ -299,7 +301,7 @@ inline bool check (int *V, vector<vector<int>> &E) {
     }
     return true;
 }
-inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict) {
+inline void tabuSearchInit (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict) {
     
     std::uniform_int_distribution<> randomByNumber(0, number - 1);
     std::uniform_int_distribution<> randomByKey(0, key - 1);
@@ -351,7 +353,7 @@ inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int
         ++step;
     }
 }
-inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict, int time) {
+inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int key, vector<vector<int>> &E, int *conflict) {
     
     std::uniform_int_distribution<> randomByNumber(0, number - 1);
     std::uniform_int_distribution<> randomByKey(0, key - 1);
@@ -361,7 +363,7 @@ inline void tabuSearch (int *VColor, int **adjacent, int **tabu, int number, int
     int step = 0;
     int HBConflict = INT32_MAX;
     vector<int> HBVColor(number, 0);
-    while (step != time) {
+    while (step != 20000) {
         int moveV = 0, moveC = 0, tmpTabu = 0;
         int maxChange = INT32_MIN;
         int count = 0;
