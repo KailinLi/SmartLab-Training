@@ -8,7 +8,7 @@
 using namespace std;
 const int INF = 0x3f3f3f3f;
 const int MAXK = 100 + 5;
-const int MAXN = 1000 + 5;
+const int MAXN = 500 + 5;
 int tabuTenure[MAXN][MAXK];
 int colorTable[MAXN][MAXK];
 int c[MAXN];
