@@ -82,7 +82,7 @@ int main (int argc, char *argv[]) {
             }
         }
 
-        if (nTabuBest == INF) cout << "hehe" << endl;
+        // if (nTabuBest == INF) cout << "hehe" << endl;
         // if (tabuBest == INF && nTabuBest == INF) break; 
         if (tabuBest < nTabuBest && conflict + tabuBest < hisBest) {
             mc = tabuMc; mv = tabuMv; nTabuBest = tabuBest;
