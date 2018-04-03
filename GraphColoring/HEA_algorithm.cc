@@ -48,7 +48,7 @@ int main (int argc, char *argv[]) {
     freopen(argv[1], "r", stdin);
     sscanf(argv[2], "%d", &K);
     getInput();
-    
+    clock_t begin = clock();
     for (int i = 0; i < MAXS; ++i) {
         society[i].init();
         society[i].makeColorTable();
@@ -93,7 +93,7 @@ int main (int argc, char *argv[]) {
         memset(son.tabuTenure, 0, sizeof(son.tabuTenure));
         son.conflict = son.step = 0;
         son.makeColorTable();
-        if (son.TS(800000)) return 0;
+        if (son.TS(800000)) break;
         int killCnt, killNum, cMax = -1;
         for (int i = 0; i < MAXS; ++i) {
             if (cMax < society[i].hisBest) {
@@ -107,6 +107,9 @@ int main (int argc, char *argv[]) {
         printf("change after cross:%d\n", society[killNum].hisBest);
         memcpy(society[killNum].bestC, son.bestC, sizeof(int) * (n + 1));
     }
+    clock_t end = clock();
+    double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
+    printf("crossStep: %d\ttime: %lf\n", crossStep, timeCost);
     return 0;
 }
 
@@ -215,12 +218,14 @@ bool Person::TS(int times) {
     double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
     printf("step: %d\ttime: %lf\n", step, timeCost);
     if (checkRes()) {
-        cout << "Finish" << endl;
+        printf("Finish\n");
+        // cout << "Finish" << endl;
         return true;
     }
     else {
-        cout << conflict << endl;
-        cout << "Failure" << endl;
+        printf("%d\tFailure\n", hisBest);
+        // cout << conflict << endl;
+        // cout << "Failure" << endl;
         return false;
     }
 }
