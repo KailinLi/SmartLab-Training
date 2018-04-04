@@ -8,7 +8,7 @@ using namespace std;
 const int INF = 0x3f3f3f3f;
 const int MAXK = 100 + 5;
 const int MAXN = 500 + 5;
-const int MAXS = 6;
+const int MAXS = 9;
 struct Edge {
     int to;
     int next;
@@ -58,7 +58,7 @@ int main (int argc, char *argv[]) {
 
     random_device rd;
     default_random_engine R(rd());
-    while (crossStep != 1000000) {
+    while (crossStep++ != 10000) {
         // Pick father & mother randomly
         int f_num = R() % MAXS;
         int m_num = R() % MAXS;
@@ -93,8 +93,8 @@ int main (int argc, char *argv[]) {
         memset(son.tabuTenure, 0, sizeof(son.tabuTenure));
         son.conflict = son.step = 0;
         son.makeColorTable();
-        if (son.TS(800000)) break;
-        int killCnt, killNum, cMax = -1;
+        if (son.TS(450000)) break;
+        int killCnt = 2, killNum = MAXS, cMax = son.hisBest;
         for (int i = 0; i < MAXS; ++i) {
             if (cMax < society[i].hisBest) {
                 cMax = society[i].hisBest; killNum = i; killCnt = 2;
@@ -103,9 +103,11 @@ int main (int argc, char *argv[]) {
                 cMax = society[i].hisBest; killNum = i; ++killCnt;
             }
         }
-        society[killNum].hisBest = son.hisBest;
-        printf("change after cross:%d\n", society[killNum].hisBest);
-        memcpy(society[killNum].bestC, son.bestC, sizeof(int) * (n + 1));
+        if (killNum != MAXS) {
+            society[killNum].hisBest = son.hisBest;
+            printf("change after cross:%d\n", society[killNum].hisBest);
+            memcpy(society[killNum].bestC, son.bestC, sizeof(int) * (n + 1));
+        }
     }
     clock_t end = clock();
     double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
@@ -164,7 +166,7 @@ bool Person::TS(int times) {
     int tabuBest, nTabuBest;
     int delta, cnt, tabuCnt;
 
-    clock_t begin = clock();
+    // clock_t begin = clock();
     while (step++ != times) {
         tabuBest = nTabuBest = INF;
         for (int u = 1; u <= n; ++u) {
@@ -214,9 +216,9 @@ bool Person::TS(int times) {
         }
         if (!conflict) break;
     }
-    clock_t end = clock();
-    double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
-    printf("step: %d\ttime: %lf\n", step, timeCost);
+    // clock_t end = clock();
+    // double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
+    // printf("step: %d\ttime: %lf\n", step, timeCost);
     if (checkRes()) {
         printf("Finish\n");
         // cout << "Finish" << endl;
