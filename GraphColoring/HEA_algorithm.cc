@@ -8,7 +8,7 @@ using namespace std;
 const int INF = 0x3f3f3f3f;
 const int MAXK = 100 + 5;
 const int MAXN = 500 + 5;
-const int MAXS = 9;
+const int MAXS = 10;
 struct Edge {
     int to;
     int next;
@@ -93,7 +93,7 @@ int main (int argc, char *argv[]) {
         memset(son.tabuTenure, 0, sizeof(son.tabuTenure));
         son.conflict = son.step = 0;
         son.makeColorTable();
-        if (son.TS(450000)) break;
+        if (son.TS(80000)) break;
         int killCnt = 2, killNum = MAXS, cMax = son.hisBest;
         for (int i = 0; i < MAXS; ++i) {
             if (cMax < society[i].hisBest) {
