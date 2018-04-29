@@ -48,12 +48,18 @@ int main (int argc, char *argv[]) {
     freopen(argv[1], "r", stdin);
     sscanf(argv[2], "%d", &K);
     getInput();
+    printf("%s  %s:\t", argv[1], argv[2]);
     clock_t begin = clock();
     for (int i = 0; i < MAXS; ++i) {
         society[i].init();
         society[i].makeColorTable();
-        if (society[i].TS(1000000)) // just tabu
+        clock_t begin = clock();
+        if (society[i].TS(1000000)) {// just tabu
+            clock_t end = clock();
+            double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
+            printf("crossStep: %d\ttime: %lf\n", crossStep, timeCost);
             return 0;
+        }
     }
 
     random_device rd;
@@ -105,7 +111,7 @@ int main (int argc, char *argv[]) {
         }
         if (killNum != MAXS) {
             society[killNum].hisBest = son.hisBest;
-            printf("change after cross:%d\n", society[killNum].hisBest);
+            // printf("change after cross:%d\n", society[killNum].hisBest);
             memcpy(society[killNum].bestC, son.bestC, sizeof(int) * (n + 1));
         }
     }
@@ -195,7 +201,7 @@ bool Person::TS(int times) {
             }
         }
 
-        if (nTabuBest == INF) cout << "hehe" << endl;
+        // if (nTabuBest == INF) cout << "hehe" << endl;
         // if (tabuBest == INF && nTabuBest == INF) break; 
         if (tabuBest < nTabuBest && conflict + tabuBest < hisBest) {
             mc = tabuMc; mv = tabuMv; nTabuBest = tabuBest;
@@ -220,12 +226,12 @@ bool Person::TS(int times) {
     // double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
     // printf("step: %d\ttime: %lf\n", step, timeCost);
     if (checkRes()) {
-        printf("Finish\n");
+        printf("Finish  |\t");
         // cout << "Finish" << endl;
         return true;
     }
     else {
-        printf("%d\tFailure\n", hisBest);
+        // printf("%d\tFailure\n", hisBest);
         // cout << conflict << endl;
         // cout << "Failure" << endl;
         return false;
