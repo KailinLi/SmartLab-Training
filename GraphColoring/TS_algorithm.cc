@@ -82,7 +82,6 @@ int main (int argc, char *argv[]) {
             }
         }
 
-        // if (nTabuBest == INF) cout << "hehe" << endl;
         // if (tabuBest == INF && nTabuBest == INF) break; 
         if (tabuBest < nTabuBest && conflict + tabuBest < hisBest) {
             mc = tabuMc; mv = tabuMv; nTabuBest = tabuBest;
@@ -101,13 +100,14 @@ int main (int argc, char *argv[]) {
     }
     clock_t end = clock();
     double timeCost = (double)(end - begin)/CLOCKS_PER_SEC;
-
+    printf("%s  %s:\t", argv[1], argv[2]);
     if (checkRes()) {
-        cout << "Finish" << endl;
+        printf("Finish  |\t");
     }
     else {
-        cout << conflict << endl;
-        cout << "Failure" << endl;
+        printf("confilct: %d Failure  |\t", conflict);
+        // cout << conflict << endl;
+        // cout << "Failure" << endl;
     }
     printf("step: %d\ttime: %lf\n", step, timeCost);
     return 0;
