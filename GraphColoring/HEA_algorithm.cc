@@ -93,7 +93,7 @@ int main (int argc, char *argv[]) {
         memset(son.tabuTenure, 0, sizeof(son.tabuTenure));
         son.conflict = son.step = 0;
         son.makeColorTable();
-        if (son.TS(80000)) break;
+        if (son.TS(85000)) break;
         int killCnt = 2, killNum = MAXS, cMax = son.hisBest;
         for (int i = 0; i < MAXS; ++i) {
             if (cMax < society[i].hisBest) {
